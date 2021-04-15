@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.mindrex.standardassets.LinearLayout
+        android:id="@+id/codeFormatter"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/codeFormatterBottomBar"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical">
+
+        <!--<shell.texteditor.TextEditor
+            android:id="@+id/codeFormatterInputString"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true" />-->
+
+        <com.mindrex.standardassets.LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/formatCodeButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/format" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/minifyCodeButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/minify" />
+        </com.mindrex.standardassets.LinearLayout>
+
+        <!--<shell.texteditor.TextEditor
+            android:id="@+id/codeFormatterOutputString"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fastScrollEnabled="true"
+            android:fillViewport="true" />-->
+
+    </com.mindrex.standardassets.LinearLayout>
+
+    <com.mindrex.standardassets.LinearLayout
+        android:id="@+id/codeFormatterBottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/copyOutputButton"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:contentDescription="@string/copy_to_clipboard"
+            app:srcCompat="@drawable/copy" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/pasteOutputButton"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:contentDescription="@string/paste"
+            app:srcCompat="@drawable/paste" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/clearInputButton"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:contentDescription="@string/clear_input_string"
+            app:srcCompat="@drawable/delete" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/switchSyntaxButton"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:contentDescription="@string/switch_syntax"
+            app:srcCompat="@drawable/switch_syntax" />
+    </com.mindrex.standardassets.LinearLayout>
+</RelativeLayout>

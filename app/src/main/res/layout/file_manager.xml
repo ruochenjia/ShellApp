@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fileManagerContentView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:background="@color/app_theme"
+            android:fitsSystemWindows="true"
+            android:minHeight="?attr/actionBarSize"
+            app:subtitleTextAppearance="@style/ActionBarSubtitleAppearance"
+            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:titleTextAppearance="@style/ActionBarTitleAppearance" />
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@id/fileManagerBottomBar"
+            android:layout_below="@id/toolbar">
+
+            <ListView
+                android:id="@+id/mainContent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fastScrollEnabled="true"
+                android:fillViewport="true"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <com.mindrex.standardassets.LinearLayout
+            android:id="@+id/fileManagerBottomBar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical">
+
+            <com.mindrex.standardassets.LinearLayout
+                android:id="@+id/mainNavigationBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/back"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/backward"
+                    app:srcCompat="@drawable/arrow_back" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/refreshContents"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/reload"
+                    app:srcCompat="@drawable/reload" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/create"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/create"
+                    app:srcCompat="@drawable/create" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/home"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/home"
+                    app:srcCompat="@drawable/home" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/parentFolder"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/parent_directory"
+                    app:srcCompat="@drawable/up_dir" />
+            </com.mindrex.standardassets.LinearLayout>
+
+            <com.mindrex.standardassets.LinearLayout
+                android:id="@+id/selectionNavigationBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/cancel"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/selection_cancel"
+                    app:srcCompat="@drawable/clear" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/selectAll"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/select_all"
+                    app:srcCompat="@drawable/select_all" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/copyFile"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/copy"
+                    app:srcCompat="@drawable/copy" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/deleteFile"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/delete"
+                    app:srcCompat="@drawable/delete" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/moreItem"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/menu"
+                    app:srcCompat="@drawable/more" />
+            </com.mindrex.standardassets.LinearLayout>
+
+            <com.mindrex.standardassets.LinearLayout
+                android:id="@+id/copyFileNavigationBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/cancelButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/selection_cancel"
+                    android:text="@string/selection_cancel" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/pasteButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/paste"
+                    android:text="@string/paste" />
+            </com.mindrex.standardassets.LinearLayout>
+        </com.mindrex.standardassets.LinearLayout>
+    </RelativeLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigationView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:headerLayout="@layout/navigation_header"
+        app:menu="@menu/navigation_menu" />
+</androidx.drawerlayout.widget.DrawerLayout>

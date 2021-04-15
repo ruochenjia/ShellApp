@@ -1,0 +1,6 @@
+include ':io'
+project(':io').projectDir = new File(settingsDir, './../../Programming Projects/JavaDesktop/libraries/io')
+include ':annotation'
+project(':annotation').projectDir = new File(settingsDir, './../../Programming Projects/JavaDesktop/libraries/annotation')
+include ':app'
+rootProject.name = "Browser"

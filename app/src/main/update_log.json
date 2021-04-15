@@ -1,0 +1,565 @@
+{
+  "versions": [
+    {
+      "name": "1.0",
+      "date": "unknown",
+      "newFeatures": [
+        "Basic browsing feature (Android System WebView)"
+      ],
+      "isBeta": false,
+      "isAlpha": false
+    },
+    {
+      "name": "1.0.0",
+      "date": "unknown",
+      "isBeta": false,
+      "isAlpha": false
+    },
+    {
+      "name": "1.0.1",
+      "date": "unknown",
+      "isBeta": false,
+      "isAlpha": false
+    },
+    {
+      "name": "1.3",
+      "date": "unknown"
+    },
+    {
+      "name": "1.4",
+      "date": "unknown"
+    },
+    {
+      "name": "Alpha-1.5",
+      "date": "unknown",
+      "newFeatures": [
+        "Debugging and fixing errors"
+      ],
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.5.1",
+      "date": "16/8/2020",
+      "newFeatures": [
+        "Debugging and fixing errors"
+      ],
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.5.2",
+      "date": "17/8/2020",
+      "newFeatures": [
+        "Disable user clear data",
+        "Allow user change home page in config page",
+        "Fix some errors on web page loading"
+      ],
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.5.3",
+      "date": "18/8/2020",
+      "newFeatures": [
+        "Add update log",
+        "Add contents for about-app description",
+        "Reset easter egg activate functions",
+        "Add about-author page (No contents)",
+        "Update config file info"
+      ],
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.6",
+      "date": "18/8/2020",
+      "newFeatures": [
+        "Allow users to download files",
+        "Move config file to application folder",
+        "Press back key again to exit",
+        "Enter key to search"
+      ],
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.6.1",
+      "date": "19/8/2020",
+      "newFeatures": [
+        "Fix some errors on download files",
+        "Reset config file location",
+        "Create data folder",
+        "Kotlin runtime files"
+      ],
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.6.2",
+      "date": "19/8/2020",
+      "newFeatures": [
+        "Reset build settings",
+        "Fix app capabilities"
+      ],
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.6.3",
+      "date": "19/8/2020",
+      "newFeatures": [
+        "Reset versions naming format",
+        "Fix syntax errors",
+        "More contents on setting page",
+        "Reset app icon id"
+      ],
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.6.3.0.1",
+      "date": "19/8/2020",
+      "notes": [
+        "Debug version, no feature added"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.6.4",
+      "date": "19/8/2020",
+      "newFeatures": [
+        "Complete setting elements",
+        "Network unavailable page"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.6.4.0.1",
+      "date": "20/8/2020",
+      "notes": [
+        "Debug version, no feature added"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.6.5",
+      "date": "20/8/2020",
+      "newFeatures": [
+        "Block webview ads",
+        "Reset support-screen values",
+        "Fix an error on loading settings"
+      ],
+      "notes": [
+        "ZStandard implementation added from \"com.github.luben:zstd-jni\"",
+        "Kotlin implementation added"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.7-pre1",
+      "date": "21/8/2020",
+      "newFeatures": [
+        "Format SettingActivity",
+        "Fix some errors"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.7-pre2",
+      "date": "21/8/2020",
+      "newFeatures": [
+        "Reset UI menus"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.7",
+      "date": "22/8/2020",
+      "newFeatures": [
+        "UI menus and layout update",
+        "fix some errors"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.7.1",
+      "date": "23/8/2020",
+      "newFeatures": [
+        "Better setting UI"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.7.1.0.1",
+      "date": "23/8/2020",
+      "newFeatures": [
+        "app_name display"
+      ],
+      "notes": [
+        "Debug version, no feature added"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.7.2",
+      "date": "24/8/2020",
+      "notes": [
+        "First build and run",
+        "Debug version, no feature added"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.7.2-lit1",
+      "date": "25/8/2020",
+      "notes": [
+        "Debug version, no feature added"
+      ],
+      "mindr-pre": [
+        [
+          {}
+        ],
+        0
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.8",
+      "date": "25/8/2020",
+      "newFeatures": [
+        "Better setting menu",
+        "Add privacy settings",
+        "Allow user clear data inside app"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.9",
+      "date": "27/8/2020",
+      "newFeatures": [
+        "Fix some errors"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.9.1",
+      "date": "27/8/2020",
+      "newFeatures": [
+        "Reset app activities"
+      ],
+      "notes": [
+        "API support testing"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.10",
+      "date": "28/8/2020",
+      "newFeature": [
+        "Allow app running in background",
+        "Add \"ApplicationActivities\" to support app",
+        "Fix some errors",
+        "Add splash screen"
+      ],
+      "notes": [
+        "API support testing"
+      ],
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Alpha-1.11",
+      "date": "29/8/2020",
+      "newFeature": [
+        "Support API 28",
+        "Fix some memory leaks",
+        "Fix some errors some webview loading",
+        "Secure browsing environment"
+      ],
+      "isBeta": false,
+      "isAlpha": true
+    },
+    {
+      "name": "Snapshot-04092020",
+      "data": "4/9/2020",
+      "notes": [
+        "Renamed java class package name"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true
+    },
+    [
+      {
+        "name": "Snapshot-05092020",
+        "data": "5/9/2020",
+        "newFeature": [
+          "More items on setting menu",
+          "Reset no internet poster"
+        ],
+        "notes": [
+          "App package name changed"
+        ],
+        "isSnapshot": true,
+        "isBeta": false,
+        "isAlpha": true
+      },
+      {
+        "beta3": "pre1",
+        "isBeta": false,
+        "isAlpha": true
+      }
+    ],
+    {
+      "name": "Snapshot-07092020",
+      "date": "7/9/2020",
+      "newFeatures": [
+        "Add activity switching animation"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-11092020-dev1",
+      "releaseDate": "11/9/2020",
+      "newFeatures": [
+        "Support fullscreen for YouTube video"
+      ],
+      "note": [],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-13092020",
+      "releaseDate": "13/9/2020",
+      "newFeatures": [
+        "Change splash screen top bar color",
+        "Add background services",
+        "Fix some errors on codes",
+        "Finish all functions on application"
+      ],
+      "note": [
+        "Some features are still testing, and not supported for all devices"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-15092020-dev.build",
+      "releaseDate": "15/9/2020",
+      "newFeatures": [],
+      "notes": [
+        "Debug version, no feature added",
+        "Some features are still testing, and not supported for all devices"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-15092020",
+      "releaseDate": "15/9/2020",
+      "newFeatures": [
+        "Complete additional functions basic activities"
+      ],
+      "notes": [
+        "Some features are still testing, and not supported for all devices"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-16092020",
+      "releaseDate": "16/9/2020",
+      "notes": [
+        "Support old android API"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-18092020",
+      "releaseDate": "18/9/2020",
+      "newFeatures": [
+        "Change in androidx support library",
+        "Fix some errors in old Android versions",
+        "Add Google ads in settings menu",
+        "Fix some errors"
+      ],
+      "notes": [],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-19092020",
+      "releaseDate": "19/9/2020",
+      "newFeatures": [
+        "Add web page intent",
+        "Add zoom control into settings",
+        "Fix some errors on codes"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-25092020-dev.build",
+      "releaseDate": "25/9/2020",
+      "newFeatures": [],
+      "notes": [
+        "Debug version, no feature added"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-25092020-dev.build1",
+      "releaseDate": "25/9/2020",
+      "newFeatures": [
+        "Add connection security notification",
+        "Fix errors on background services"
+      ],
+      "notes": [
+        "Debug version"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-26092020-pre",
+      "releaseDate": "26/9/2020",
+      "newFeatures": [
+        "Better appearance on setting menu",
+        "Fix some errors"
+      ],
+      "notes": [
+        "Pre-release version, some feature might not complete"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "Snapshot-26092020",
+      "releaseDate": "27/9/2020",
+      "newFeatures": [
+        "Fix some errors",
+        "Support WAKE_LOCK",
+        "Add missing features on previous versions"
+      ],
+      "isSnapshot": true,
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "private_test_1-prerelease",
+      "releaseDate": "4/10/2020",
+      "newFeatures": [
+        "Remove title bar",
+        "Add bottom activity bar",
+        "Support bookmarks",
+        "Support Multitab (not completed)",
+        "Allow user change download location in setting menu",
+        "Fix some errors"
+      ],
+      "notes": [
+        "Pre-release version, some feature might not complete"
+      ],
+      "isBeta": false,
+      "isAlpha": true,
+      "privateTest": true
+    },
+    {
+      "name": "TestDev",
+      "releaseDate": [
+        "10/10/2020",
+        "14/10/2020",
+        "16/10/2020",
+        "18/10/2020",
+        "25/10/2020",
+        "27/10/2020"
+      ],
+      "notes": [
+        "This is a developing version, it might last for a long time, and would keep adding features or changes"
+      ]
+    },
+    {
+      "name": "TestDev2",
+      "releaseDate": [
+        "2/11/2020",
+        "4/11/2020"
+      ],
+      "notes": [
+        "This is a developing version, it might last for a long time, and would keep adding features or changes"
+      ]
+    },
+    {
+      "name": "TestDev3",
+      "releaseDate": "6/11/2020",
+      "newFeatures": [
+        "Complete code formatter functions: Add xml formatter",
+        "Add apk extractor",
+        "Complete file manager basic actions",
+        "Fix some errors on file manager",
+        "Fix some errors on browser"
+      ]
+    },
+    {
+      "name" : "TestDev4",
+      "releaseData": "18/11/2020",
+      "newFeatures": [
+        "Add TextEditor for opening text and code files",
+        "More functions in multiselect page"
+      ]
+    }
+  ]
+}

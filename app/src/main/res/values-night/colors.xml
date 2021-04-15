@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<resources>
+    <color name="app_icon_background">#aa0a0a</color>
+    <color name="contents">#9c9c9c</color>
+    <color name="contents_title">#f0f0f0</color>
+    <color name="splash_title">#e8e8e8</color>
+</resources>

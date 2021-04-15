@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menuCategoryTools"
+        android:title="@string/tools">
+        <menu>
+            <item
+                android:id="@+id/browser"
+                android:icon="@drawable/browser1"
+                android:title="@string/web_browser" />
+            <item
+                android:id="@+id/encoder"
+                android:icon="@drawable/encoder"
+                android:title="@string/encoder" />
+            <item
+                android:id="@+id/codeFormatter"
+                android:icon="@drawable/encoder"
+                android:title="@string/code_formatter" />
+            <item
+                android:id="@+id/uuidGenerator"
+                android:icon="@drawable/uuid_generator"
+                android:title="@string/uuid_generator" />
+            <item
+                android:id="@+id/apkExtractor"
+                android:icon="@drawable/package_extractor"
+                android:title="@string/apk_extractor" />
+        </menu>
+    </item>
+</menu>
