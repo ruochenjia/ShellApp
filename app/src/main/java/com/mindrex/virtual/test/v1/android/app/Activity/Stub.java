@@ -2,9 +2,9 @@ package com.mindrex.virtual.test.v1.android.app.Activity;
 
 import androidx.annotation.NonNull;
 
-import com.mindrex.debugger.Log;
+import com.mindrex.android.debugger.Log;
 import com.mindrex.io.TextWriter;
-import com.mindrex.standardassets.Filex;
+import com.mindrex.android.appsupport.Filex;
 
 import dalvik.system.PathClassLoader;
 

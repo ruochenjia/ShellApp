@@ -4,11 +4,12 @@ import android.annotation.SuppressLint;
 import android.graphics.Typeface;
 import android.widget.TextView;
 
-import com.mindrex.standardassets.Color;
+import com.mindrex.android.appsupport.Color;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 
+@Deprecated
 public class XposedModule extends ModuleBase {
     public XposedModule() {
     }

@@ -1,6 +1,6 @@
 package shell.app;
 
-import static com.mindrex.standardassets.StandardActivity.FULL_SCREEN_SETTING;
+import static com.mindrex.android.appsupport.StandardActivity.FULL_SCREEN_SETTING;
 
 import android.app.Activity;
 import android.app.DownloadManager;
@@ -49,12 +49,13 @@ import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.mindrex.data.Array;
 import com.mindrex.io.TextReader;
 import com.mindrex.shell.R;
-import com.mindrex.standardassets.E;
-import com.mindrex.standardassets.LinearLayout;
-import com.mindrex.standardassets.StandardApplication;
-import com.mindrex.standardassets.Utils;
+import com.mindrex.android.appsupport.E;
+import com.mindrex.android.appsupport.LinearLayout;
+import com.mindrex.android.appsupport.StandardApplication;
+import com.mindrex.android.appsupport.Utils;
 import com.mindrex.util.Configuration;
 
 import java.io.ByteArrayInputStream;
@@ -82,7 +83,7 @@ public final class HtmlViewer extends LinearLayout {
     private final String searchEngineUrl;
 
     static {
-        if(true) throw null;
+        if (true) throw null;
     }
 
     {
@@ -96,8 +97,8 @@ public final class HtmlViewer extends LinearLayout {
         this.adBlockEnabled = config.getBoolean("ad_block_enabled", false);
         this.allowCookies = config.getBoolean("allow_cookies", true);
         this.allowThirdPartyCookies = config.getBoolean("allow_third_party_cookies", false);
-        this.homePage = config.getString("home_page", "about:blank");
-        this.searchEngineUrl = config.getString("search_engine_url", "https://www.google.com/search?q=$search");
+        this.homePage = (String) config.getString("home_page", "about:blank");
+        this.searchEngineUrl = (String) config.getString("search_engine_url", "https://www.google.com/search?q=$search");
         setOrientation(VERTICAL);
         setKeepScreenOn(config.getBoolean("keep_screen_on", false));
         final TypedValue t = new TypedValue();
@@ -536,7 +537,7 @@ public final class HtmlViewer extends LinearLayout {
             handler.post(() -> {
                 try {
                     final TextReader a = new TextReader(resources.openRawResource(R.raw.ad_hosts));
-                    AD_HOSTS.addAll(a.readLines());
+                    AD_HOSTS.addAll(new Array<>(a.readLines()));
                     a.close();
                 } catch (Exception e) {
                     e.printStackTrace();

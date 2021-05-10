@@ -6,12 +6,16 @@
         <menu>
             <item
                 android:id="@+id/browser"
+                android:enabled="false"
                 android:icon="@drawable/browser1"
-                android:title="@string/web_browser" />
+                android:title="@string/web_browser"
+                android:visible="false" />
             <item
                 android:id="@+id/encoder"
+                android:enabled="false"
                 android:icon="@drawable/encoder"
-                android:title="@string/encoder" />
+                android:title="@string/encoder"
+                android:visible="false" />
             <item
                 android:id="@+id/codeFormatter"
                 android:icon="@drawable/encoder"
@@ -24,6 +28,10 @@
                 android:id="@+id/apkExtractor"
                 android:icon="@drawable/package_extractor"
                 android:title="@string/apk_extractor" />
+            <item
+                android:id="@+id/rootFeatures"
+                android:icon="@drawable/developer_features"
+                android:title="@string/root_based_features" />
         </menu>
     </item>
 </menu>

@@ -2,7 +2,7 @@ package shell.app;
 
 import android.content.Intent;
 
-import com.mindrex.standardassets.StandardService;
+import com.mindrex.android.appsupport.StandardService;
 
 public final class RestartAppService extends StandardService {
     public RestartAppService() {
@@ -11,8 +11,8 @@ public final class RestartAppService extends StandardService {
     @Override
     public final int onStartCommand(Intent intent, int flags, int startId) {
         handler.postDelayed(() -> {
-            Intent a = getPackageManager().getLaunchIntentForPackage(getPackageName());
-            a.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            final Intent a = getPackageManager().getLaunchIntentForPackage(getPackageName());
+            a.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(a);
             stopSelf();
         }, 1000);

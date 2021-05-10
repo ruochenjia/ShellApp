@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.mindrex.edit.TextEditor
+    <com.mindrex.android.edit.TextEditor
         android:id="@+id/textEditorWidget"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

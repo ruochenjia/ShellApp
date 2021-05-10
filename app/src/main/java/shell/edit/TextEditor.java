@@ -14,6 +14,8 @@ import android.text.Selection;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextWatcher;
+import android.text.method.ArrowKeyMovementMethod;
+import android.text.method.MovementMethod;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
@@ -21,18 +23,18 @@ import android.view.Gravity;
 import android.view.ViewTreeObserver;
 
 import androidx.annotation.CallSuper;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatTextView;
 
-import com.mindrex.standardassets.Color;
-import com.mindrex.standardassets.Utils;
+import com.mindrex.android.appsupport.Color;
+import com.mindrex.android.appsupport.Utils;
+import com.mindrex.util.Sfx;
 
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TextEditor extends AppCompatTextView implements CharSequence, ViewTreeObserver.OnGlobalLayoutListener, Runnable {
+public class TextEditor extends AppCompatTextView implements ViewTreeObserver.OnGlobalLayoutListener, Runnable {
     private static final Pattern PATTERN_KEYWORD_C;
     private static final Pattern PATTERN_HEAD_FILE_C;
     private static final Pattern PATTERN_KEYWORD_CPP;
@@ -165,10 +167,25 @@ public class TextEditor extends AppCompatTextView implements CharSequence, ViewT
         }
     }
 
+    @Override
+    public final boolean getFreezesText() {
+        return true;
+    }
+
+    @Override
+    public final boolean getDefaultEditable() {
+        return true;
+    }
+
+    @Override
+    public MovementMethod getDefaultMovementMethod() {
+        return ArrowKeyMovementMethod.getInstance();
+    }
+
     @Deprecated
     public void setText(CharSequence s, BufferType f) {
         f = BufferType.EDITABLE;
-        super.setText(s, f);
+        super.setText(Sfx.nonnull(s), f);
     }
 
     @Override
@@ -209,6 +226,15 @@ public class TextEditor extends AppCompatTextView implements CharSequence, ViewT
             throw new UnsupportedOperationException();
         }
         super.setGravity(gravity);
+    }
+
+    @CallSuper
+    @Override
+    public void setCursorVisible(boolean visible) {
+        if (isViewInitialized) {
+            throw new UnsupportedOperationException();
+        }
+        super.setCursorVisible(visible);
     }
 
     @Deprecated
@@ -326,7 +352,6 @@ public class TextEditor extends AppCompatTextView implements CharSequence, ViewT
         }
     }
 
-
     public enum Syntax {
         TEXT,
         JAVA,
@@ -336,17 +361,6 @@ public class TextEditor extends AppCompatTextView implements CharSequence, ViewT
 
         Syntax() {
         }
-    }
-
-    @Override
-    public char charAt(int i) {
-        return editable.charAt(i);
-    }
-
-    @NonNull
-    @Override
-    public CharSequence subSequence(int i, int i1) {
-        return editable.subSequence(i, i1);
     }
 
     @Override

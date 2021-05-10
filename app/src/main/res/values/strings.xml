@@ -259,4 +259,6 @@
     <string name="clear">Clear</string>
     <string name="no_internet_connection">No internet connection</string>
     <string name="page_load_failed_message">Cannot connect to $host_name $msg($err_code)</string>
+    <string name="unknown_file_path">Unknown file path</string>
+    <string name="root_based_features">Root Based Features</string>
 </resources>

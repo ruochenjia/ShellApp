@@ -10,20 +10,12 @@ import com.mindrex.shell.R;
 import com.topjohnwu.superuser.Shell;
 
 public final class LaunchActivity extends ActivityFramework {
-    static {
-        Shell.enableVerboseLogging = BuildConfig.DEBUG;
-        Shell.setDefaultBuilder(Shell.Builder.create()
-                .setFlags(Shell.FLAG_REDIRECT_STDERR)
-                .setTimeout(10)
-        );
-    }
-
     public LaunchActivity() {
     }
 
     @Override
-    public final void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public final void onCreate(Bundle b) {
+        super.onCreate(b);
         setContentView(R.layout.splash);
     }
 
@@ -41,13 +33,10 @@ public final class LaunchActivity extends ActivityFramework {
     @Override
     public final void run() {
         Shell.getShell(shell -> {
-            startActivity(new Intent(this, MainActivity.class));
+            final Intent a = new Intent(this, MainActivity.class);
+            a.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(a);
             finish();
         });
-    }
-
-    @Override
-    public final String toString() {
-        return "null";
     }
 }

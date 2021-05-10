@@ -5,11 +5,12 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.Editable;
@@ -30,21 +31,20 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.AppCompatTextView;
-import androidx.core.content.ContextCompat;
 
-import com.mindrex.io.IO;
+import com.mindrex.data.Array;
 import com.mindrex.shell.R;
-import com.mindrex.standardassets.CommandUtils;
-import com.mindrex.standardassets.E;
-import com.mindrex.standardassets.Filex;
-import com.mindrex.util.Sfx;
+import com.mindrex.android.appsupport.Color;
+import com.mindrex.android.appsupport.CommandUtils;
+import com.mindrex.android.appsupport.E;
+import com.mindrex.android.appsupport.Filex;
+import com.topjohnwu.superuser.Shell;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import shell.app.IconAlertDialogAdaptor.Item;
 
@@ -56,8 +56,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
     private CustomAdaptor adaptor;
     private ProgressDialog dialog;
     private View bottomBar;
-    private List<ApplicationInfo> info, info1;
-    private final Handler handler;
+    private ApplicationInfo[] info, info1;
 
     private AlertDialog.Builder menu;
     private final Item[] menu1 = new Item[]{
@@ -76,20 +75,16 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
     };
 
     public ApkExtractor() {
-        this.handler = new Handler(Looper.myLooper(), this);
     }
 
     @Override
-    protected final void onCreate(@Nullable Bundle savedInstanceState) {
+    public final void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.apk_extractor);
         listView = findViewById(R.id.mainContent);
         searchBar = findViewById(R.id.searchBar);
         bottomBar = findViewById(R.id.bottomBar);
-
-        Sfx.nonnull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-
-        dialog = ProgressDialog.show(ApkExtractor.this, getResources().getString(R.string.loading), getResources().getString(R.string.please_wait));
+        dialog = ProgressDialog.show(this, getResources().getString(R.string.loading), getResources().getString(R.string.please_wait));
         dialog.show();
         menu = new AlertDialog.Builder(this);
         menu.setPositiveButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
@@ -99,10 +94,11 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
             bottomBar.setVisibility(View.GONE);
         });
         findViewById(R.id.extractButton).setOnClickListener(view -> {
-            final List<Integer> a = new ArrayList<>();
+            int[] a = new int[0];
             for (int i = 0; i < adaptor.selection.length; i++)
-                if (adaptor.isSelected(i)) a.add(i);
-            extractApk(a.toArray(new Integer[0]));
+                if (adaptor.isSelected(i))
+                    a = Array.append(a, i);
+            extractApk(a);
             adaptor.removeSelections();
             bottomBar.setVisibility(View.GONE);
         });
@@ -112,11 +108,13 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
     public final boolean handleMessage(@NonNull Message message) {
         switch (message.what) {
             case 1:
-                adaptor = new CustomAdaptor(info);
+                adaptor = new CustomAdaptor();
+                adaptor.data = info;
+                adaptor.selection = new boolean[info.length];
                 listView.setAdapter(adaptor);
-                listView.setOnItemClickListener(ApkExtractor.this);
-                listView.setOnItemLongClickListener(ApkExtractor.this);
-                searchBar.addTextChangedListener(ApkExtractor.this);
+                listView.setOnItemClickListener(this);
+                listView.setOnItemLongClickListener(this);
+                searchBar.addTextChangedListener(this);
             case 0:
                 dialog.dismiss();
                 return true;
@@ -127,13 +125,13 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
 
     @Override
     public final void run() {
-        info = new ArrayList<>();
-        info1 = new ArrayList<>();
         try {
-            info.addAll(ApplicationInfo.getInstalledApplicationList(this));
-            info1.addAll(info);
+            info = ApplicationInfo.getInstalledApplicationList(this);
+            info1 = Array.clone(info);
         } catch (Exception e) {
             E.print(this, e);
+            info = new ApplicationInfo[0];
+            info1 = new ApplicationInfo[0];
         }
         handler.sendEmptyMessage(1);
     }
@@ -181,10 +179,6 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
     }
 
     @Override
-    public final void beforeTextChanged(final CharSequence s, int start, int count, int after) {
-    }
-
-    @Override
     public final void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         adaptor.setSelection(position, !adaptor.isSelected(position));
         if (adaptor.selectedItemCount > 0) bottomBar.setVisibility(View.VISIBLE);
@@ -200,7 +194,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                 menu.setAdapter(new IconAlertDialogAdaptor(menu1), (dialog, which) -> {
                     switch (which) {
                         case 0:
-                            extractApk(new Integer[]{position});
+                            extractApk(new int[]{position});
                             break;
                         case 1:
                             // unf
@@ -222,7 +216,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                         case 3:
                             if (CommandUtils.hasRootAccess)
                                 try {
-                                    CommandUtils.executeWithError("su", "pm disable " + s, "exit");
+                                    Shell.su("pm disable " + s);
                                 } catch (Exception t) {
                                     E.print(view.getContext(), t);
                                 }
@@ -231,7 +225,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                         case 4:
                             if (CommandUtils.hasRootAccess)
                                 try {
-                                    CommandUtils.executeWithError("su", "pm uninstall " + s, "exit");
+                                    Shell.su("pm uninstall " + s);
                                 } catch (Exception t) {
                                     E.print(view.getContext(), t);
                                 }
@@ -244,7 +238,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
             else menu.setAdapter(new IconAlertDialogAdaptor(menu2), (dialog, which) -> {
                 switch (which) {
                     case 0:
-                        extractApk(new Integer[]{position});
+                        extractApk(new int[]{position});
                         break;
                     case 1:
                         // unf
@@ -262,7 +256,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                     case 3:
                         if (CommandUtils.hasRootAccess)
                             try {
-                                CommandUtils.executeWithError("su", "pm enable " + s, "exit");
+                                Shell.su("pm enable " + s);
                             } catch (Exception t) {
                                 E.print(view.getContext(), t);
                             }
@@ -271,7 +265,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                     case 4:
                         if (CommandUtils.hasRootAccess)
                             try {
-                                CommandUtils.executeWithError("su", "pm uninstall " + s, "exit");
+                                Shell.su("pm uninstall" + s);
                             } catch (Exception t) {
                                 E.print(view.getContext(), t);
                             }
@@ -289,31 +283,30 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
     }
 
     @Override
+    public final void beforeTextChanged(final CharSequence s, int start, int count, int after) {
+    }
+
+    @Override
     public final void onTextChanged(final CharSequence s, int start, int before, int count) {
-        final String v = Sfx.nonnull(searchBar.getText()).toString().toLowerCase();
-        info.clear();
-        if (v.length() > 0) {
-            for (int i = 0; i < info1.size(); i++) {
-                final String a = info1.get(i).label.toLowerCase();
-                final String b = info1.get(i).packageName.toLowerCase();
-                if (a.contains(v) || b.contains(v))
-                    info.add(info1.get(i));
-            }
-        } else info.addAll(info1);
-        adaptor.setData(info);
     }
 
     @Override
     public final void afterTextChanged(final Editable s) {
+        CharSequence a = searchBar.getText();
+        if (a != null && a.length() > 0) {
+            a = String.valueOf(a).toLowerCase(Locale.ROOT);
+            info = new ApplicationInfo[0];
+            for (ApplicationInfo d : info1) {
+                final String b = d.label.toLowerCase(Locale.ROOT);
+                final String c = d.packageName.toLowerCase(Locale.ROOT);
+                if (b.contains(a) || c.contains(a))
+                    info = Array.append(info, d);
+            }
+        }
+        adaptor.setData(info);
     }
 
-    @NonNull
-    @Override
-    public final Context getContext() {
-        return this;
-    }
-
-    final void extractApk(Integer[] pos) {
+    private void extractApk(int[] pos) {
         dialog = ProgressDialog.show(this, getResources().getString(R.string.loading), getResources().getString(R.string.please_wait));
         dialog.show();
         handler.post(() -> {
@@ -322,17 +315,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                 try {
                     final Filex f = new Filex(adaptor.getItem(i).sourceDir);
                     j.createParentDir();
-                    if (f.exists()) {
-                        final InputStream a = f.getInputStream();
-                        final OutputStream b = j.getOutputStream();
-                        final byte[] c = new byte[IO.bufferSize];
-                        int d;
-                        while ((d = a.read(c)) > 0) {
-                            b.write(c, 0, d);
-                        }
-                        a.close();
-                        b.close();
-                    }
+                    f.copyTo(j);
                     Toast.makeText(this, getResources().getString(R.string.apk_extracted_message).replace("$path", j.getPath()), Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     E.print(this, e);
@@ -342,7 +325,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
         });
     }
 
-    private static final class ApplicationInfo implements Comparable<ApplicationInfo> {
+    private static final class ApplicationInfo implements Comparable<ApplicationInfo>, Comparator<ApplicationInfo> {
         public static byte sortingRule = 0; // 0: package name; 1: label; 2: install time; 3: update time
 
         public final String packageName;
@@ -369,46 +352,56 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
 
         @Override
         public final int compareTo(ApplicationInfo o) {
+            return compare(this, o);
+        }
+
+        @Override
+        public final int compare(ApplicationInfo o1, ApplicationInfo o2) {
             switch (sortingRule) {
                 case 0:
-                    return packageName.compareTo(o.packageName);
+                    return o1.packageName.compareTo(o2.packageName);
                 case 1:
-                    return label.compareTo(o.label);
+                    return o1.label.compareTo(o2.label);
                 case 2:
-                    return installTime.compareTo(o.installTime);
+                    return o1.installTime.compareTo(o2.installTime);
                 case 3:
-                    return updateTime.compareTo(o.updateTime);
+                    return o1.updateTime.compareTo(o2.updateTime);
                 default:
                     return 0;
             }
         }
 
-        public static ArrayList<ApplicationInfo> getInstalledApplicationList(Context ctx) throws Exception {
+        public static ApplicationInfo[] getInstalledApplicationList(Context ctx) throws Exception {
             final PackageManager a = ctx.getPackageManager();
             final List<android.content.pm.ApplicationInfo> b = a.getInstalledApplications(PackageManager.GET_META_DATA);
             final List<String> c = new ArrayList<>();
-            final ArrayList<ApplicationInfo> d = new ArrayList<>();
+            ApplicationInfo[] d = new ApplicationInfo[0];
             for (int i = 0; i < b.size(); i++) c.add(b.get(i).packageName);
             Collections.sort(c);
-            for (String s : c) d.add(new ApplicationInfo(a, s));
+            for (String s : c)
+                d = Array.append(d, new ApplicationInfo(a, s));
             return d;
         }
     }
 
     private static final class CustomAdaptor extends BaseAdapter {
-        private final List<ApplicationInfo> data;
+        private final Drawable defaultDrawable;
+        private final Drawable selectedDrawable;
+        private ApplicationInfo[] data;
         private boolean[] selection;
         private int selectedItemCount = 0;
 
-        public CustomAdaptor(List<ApplicationInfo> d) {
-            this.data = d;
-            this.selection = new boolean[data.size()];
+        private CustomAdaptor() {
+            final StateListDrawable a = new StateListDrawable();
+            a.addState(new int[]{android.R.attr.state_pressed, android.R.attr.state_focused}, new ColorDrawable(Color.GRAY.toInt()));
+            a.addState(new int[]{}, new ColorDrawable(Color.TRANSPARENT.toInt()));
+            this.defaultDrawable = a;
+            this.selectedDrawable = new ColorDrawable(Color.GRAY.toInt());
         }
 
-        public final void setData(List<ApplicationInfo> d) {
-            this.data.clear();
-            this.data.addAll(d);
-            this.selection = new boolean[data.size()];
+        public final void setData(ApplicationInfo[] a) {
+            data = a;
+            selection = new boolean[data.length];
             notifyDataSetChanged();
         }
 
@@ -422,7 +415,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
         }
 
         public final void removeSelections() {
-            Arrays.fill(selection, false);
+            Array.fill(selection, false);
             selectedItemCount = 0;
             notifyDataSetChanged();
         }
@@ -433,12 +426,12 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
 
         @Override
         public final int getCount() {
-            return data.size();
+            return data.length;
         }
 
         @Override
         public final ApplicationInfo getItem(int position) {
-            return data.get(position);
+            return data[position];
         }
 
         @Override
@@ -459,15 +452,15 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                         convertView.findViewById(R.id.appPackageName));
                 convertView.setTag(h);
             }
-            convertView.setBackground(ContextCompat.getDrawable(convertView.getContext(), R.drawable.list_item));
-            h.appIcon.setImageDrawable(data.get(position).icon);
-            h.appName.setText(data.get(position).label);
+            h.appIcon.setImageDrawable(data[position].icon);
+            h.appName.setText(data[position].label);
             h.appVersion.setText(convertView.getResources().getString(R.string.application_version_description)
-                    .replace("$version_name", data.get(position).version)
-                    .replace("$version_code", data.get(position).versionCode.toString()));
+                    .replace("$version_name", data[position].version)
+                    .replace("$version_code", data[position].versionCode.toString()));
             h.appPackageName.setText(convertView.getResources().getString(R.string.application_package_name_description)
-                    .replace("$package_name", data.get(position).packageName));
+                    .replace("$package_name", data[position].packageName));
             convertView.setSelected(selection[position]);
+            convertView.setBackground(selection[position] ? selectedDrawable : defaultDrawable);
             return convertView;
         }
 
@@ -477,7 +470,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
             public final AppCompatTextView appVersion;
             public final AppCompatTextView appPackageName;
 
-            public ViewHolder(@NonNull AppCompatImageView a, @NonNull AppCompatTextView b, @NonNull AppCompatTextView c, @NonNull AppCompatTextView d) {
+            public ViewHolder(AppCompatImageView a, AppCompatTextView b, AppCompatTextView c, AppCompatTextView d) {
                 this.appIcon = a;
                 this.appName = b;
                 this.appVersion = c;
@@ -495,31 +488,5 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                         '}';
             }
         }
-
-        @NonNull
-        @Override
-        public final String toString() {
-            return "CustomAdaptor{" +
-                    "data=" + data +
-                    ", selection=" + Arrays.toString(selection) +
-                    '}';
-        }
-    }
-
-    @NonNull
-    @Override
-    public final String toString() {
-        return "ApkExtractor{" +
-                "listView=" + listView +
-                ", searchBar=" + searchBar +
-                ", adaptor=" + adaptor +
-                ", dialog=" + dialog +
-                ", info=" + info +
-                ", info1=" + info1 +
-                ", handler=" + handler +
-                ", menu=" + menu +
-                ", menu1=" + Arrays.toString(menu1) +
-                ", menu2=" + Arrays.toString(menu2) +
-                '}';
     }
 }

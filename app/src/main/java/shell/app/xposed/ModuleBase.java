@@ -5,6 +5,7 @@ import androidx.annotation.CallSuper;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
+@Deprecated
 public abstract class ModuleBase implements IXposedHookLoadPackage {
     public static ClassLoader classLoader;
     public static String packageName;

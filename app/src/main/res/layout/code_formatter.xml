@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.mindrex.standardassets.LinearLayout
+    <com.mindrex.android.appsupport.LinearLayout
         android:id="@+id/codeFormatter"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -19,7 +19,7 @@
             android:layout_weight="1"
             android:fillViewport="true" />-->
 
-        <com.mindrex.standardassets.LinearLayout
+        <com.mindrex.android.appsupport.LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -37,7 +37,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="@string/minify" />
-        </com.mindrex.standardassets.LinearLayout>
+        </com.mindrex.android.appsupport.LinearLayout>
 
         <!--<shell.texteditor.TextEditor
             android:id="@+id/codeFormatterOutputString"
@@ -47,9 +47,9 @@
             android:fastScrollEnabled="true"
             android:fillViewport="true" />-->
 
-    </com.mindrex.standardassets.LinearLayout>
+    </com.mindrex.android.appsupport.LinearLayout>
 
-    <com.mindrex.standardassets.LinearLayout
+    <com.mindrex.android.appsupport.LinearLayout
         android:id="@+id/codeFormatterBottomBar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -92,5 +92,5 @@
             android:layout_weight="1"
             android:contentDescription="@string/switch_syntax"
             app:srcCompat="@drawable/switch_syntax" />
-    </com.mindrex.standardassets.LinearLayout>
+    </com.mindrex.android.appsupport.LinearLayout>
 </RelativeLayout>

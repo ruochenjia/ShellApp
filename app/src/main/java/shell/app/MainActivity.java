@@ -59,13 +59,15 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.navigation.NavigationView;
-import com.mindrex.collection.Array;
-import com.mindrex.debugger.Log;
+import com.mindrex.annotation.TestOnly;
+import com.mindrex.data.Array;
+import com.mindrex.android.debugger.Log;
 import com.mindrex.io.CompressLevel;
 import com.mindrex.io.CompressMethod;
 import com.mindrex.io.CompressUtils;
-import com.mindrex.io.FileUtil;
+import com.mindrex.io.FileSystem;
 import com.mindrex.io.IO;
+import com.mindrex.io.IOUtils;
 import com.mindrex.io.KeyUtils;
 import com.mindrex.io.SevenZ;
 import com.mindrex.io.SignJar;
@@ -73,15 +75,15 @@ import com.mindrex.io.Tar;
 import com.mindrex.io.TextWriter;
 import com.mindrex.io.Zip;
 import com.mindrex.shell.R;
-import com.mindrex.standardassets.ArchiveType;
-import com.mindrex.standardassets.Color;
-import com.mindrex.standardassets.CommandUtils;
-import com.mindrex.standardassets.E;
-import com.mindrex.standardassets.Filex;
-import com.mindrex.standardassets.LinearLayout;
-import com.mindrex.standardassets.Storage;
-import com.mindrex.standardassets.Thumbnail;
-import com.mindrex.standardassets.Utils;
+import com.mindrex.android.appsupport.ArchiveType;
+import com.mindrex.android.appsupport.Color;
+import com.mindrex.android.appsupport.CommandUtils;
+import com.mindrex.android.appsupport.E;
+import com.mindrex.android.appsupport.Filex;
+import com.mindrex.android.appsupport.LinearLayout;
+import com.mindrex.android.appsupport.Storage;
+import com.mindrex.android.appsupport.Thumbnail;
+import com.mindrex.android.appsupport.Utils;
 import com.mindrex.util.Sfx;
 import com.mindrex.virtual.test.v1.android.app.Activity.Stub;
 import com.topjohnwu.superuser.Shell;
@@ -99,7 +101,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 import dalvik.system.DexFile;
-import javalx.util.AdBlockerPlus;
 
 // Notice: This file might have been changed from original.
 
@@ -117,7 +118,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     private ProgressDialog dialog;
     private SwipeRefreshLayout swipeRefreshLayout;
 
-    private final Stringx currentFile = new Stringx(new Stringx("AbCdEf0123456789").toCharSequence());
+    private final StringHolder currentFile = new StringHolder();
     private boolean[] selection;
     private List<Filex> fileList;
     private List<String> origins;
@@ -147,10 +148,10 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         public final void run() {
             fileList.clear();
             final Filex v = new Filex(currentFile.toString());
-            if (FileUtil.isDirectoryReadable(v.getPath()) || CommandUtils.hasRootAccess) {
+            if (!new File(v.getPath()).canRead() || CommandUtils.hasRootAccess) {
                 final Filex[] a = v.list();
                 if (a.length > 0)
-                    fileList.addAll(Arrays.asList(a));
+                    fileList.addAll(new Array<>(a));
             } else RootRequiredDialog.show(MainActivity.this);
             if (reverseOrder) Collections.sort(fileList, Collections.reverseOrder());
             else Collections.sort(fileList);
@@ -268,7 +269,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
 
     public MainActivity() throws Exception {
         Stub.main(new String[]{Storage.STORAGE_INTERNAL + "/demo.apk"});
-        AdBlockerPlus.blockAds();
     }
 
     @Override
@@ -298,7 +298,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Sfx.nonnull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         final View v = navigationView.getHeaderView(0);
         storagePartitionInternalProgressBar = v.findViewById(R.id.storagePartitionInternalProgressBar);
@@ -393,7 +393,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
             Toast.makeText(this, R.string.unsupported_system_version_warning, Toast.LENGTH_LONG).show();
         initializeStoragePartitionContents();
-        if (!new File(applicationExternalDataFolder, ".registered_classes").exists())
+        if (!new File(getExternalFilesDir(null), ".registered_classes").exists())
             new Thread() {
                 @Override
                 public final void run() {
@@ -500,7 +500,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             return true;
         } else if (i == R.id.settings) {
             // getPackageManager().setComponentEnabledSetting(new ComponentName(this, Application.class), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-            // Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show();
             return true;
         } else if (i == R.id.command) {
             final AlertDialog.Builder a = new AlertDialog.Builder(this);
@@ -613,6 +613,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     public final void onTextChanged(CharSequence s, int start, int before, int count) {
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public final void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (selectedCount == 0)
@@ -826,23 +827,23 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                     final String n = xf.getPath();
                                     ArchiveType archiveType = ArchiveType.fromFileExtension(s);
                                     if (archiveType == ArchiveType.BROTLI) {
-                                        CompressUtils.extractBrotli(n, FileUtil.removeFileExtension(n));
+                                        CompressUtils.extractBrotli(n, IOUtils.removeFileExtension(n));
                                     } else if (archiveType == ArchiveType.BZIP2) {
-                                        CompressUtils.extractBz2(n, FileUtil.removeFileExtension(n));
+                                        CompressUtils.extractBz2(n, IOUtils.removeFileExtension(n));
                                     } else if (archiveType == ArchiveType.GZIP) {
-                                        CompressUtils.extractGz(n, FileUtil.removeFileExtension(n));
+                                        CompressUtils.extractGz(n, IOUtils.removeFileExtension(n));
                                     } else if (archiveType == ArchiveType.LZ4) {
-                                        CompressUtils.extractLz4(n, FileUtil.removeFileExtension(n));
+                                        CompressUtils.extractLz4(n, IOUtils.removeFileExtension(n));
                                     } else if (archiveType == ArchiveType.PACK200) {
-                                        CompressUtils.extractPack200(n, FileUtil.removeFileExtension(n));
+                                        CompressUtils.extractPack200(n, IOUtils.removeFileExtension(n));
                                     } else if (archiveType == ArchiveType.SNAPPY) {
-                                        CompressUtils.extractSnappy(n, FileUtil.removeFileExtension(n));
+                                        CompressUtils.extractSnappy(n, IOUtils.removeFileExtension(n));
                                     } else if (archiveType == ArchiveType.XZ) {
-                                        CompressUtils.extractXz(n, FileUtil.removeFileExtension(n));
+                                        CompressUtils.extractXz(n, IOUtils.removeFileExtension(n));
                                     } else if (archiveType == ArchiveType.Z) {
-                                        CompressUtils.extractZ(n, FileUtil.removeFileExtension(n));
+                                        CompressUtils.extractZ(n, IOUtils.removeFileExtension(n));
                                     } else if (archiveType == ArchiveType.ZSTD) {
-                                        CompressUtils.extractZst(n, FileUtil.removeFileExtension(n));
+                                        CompressUtils.extractZst(n, IOUtils.removeFileExtension(n));
                                     } else {
                                         throw new IllegalArgumentException("Unsupported file type: " + s);
                                     }
@@ -922,6 +923,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
 
     private Object tmp;
 
+    @SuppressWarnings("EqualsBetweenInconvertibleTypes")
     @SuppressLint("NonConstantResourceId")
     final void initializeFileManager() {
         fileList = new ArrayList<>();
@@ -983,7 +985,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             a.show();
         });
         upDirButton.setOnClickListener(view -> {
-            if (currentFile.equals(Filex.separator) || new Filex(currentFile.toString()).getParent() == null) {
+            if (currentFile.equals(FileSystem.separator) || FileSystem.parseParent(currentFile).length() == 0) {
                 if (doubleBackToExitPressedOnce)
                     finish();
                 else {
@@ -1173,7 +1175,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                 case 6: // sign
                                     try {
                                         final String r = f.removeExtension().getPath() + "_signed" + f.getExtension();
-                                        new SignJar(f.getPath(), r, KeyUtils.loadPrivateKey(null), KeyUtils.generateCertificate(null))
+                                        new SignJar(f.getPath(), r, "null", KeyUtils.loadPrivateKey(null), KeyUtils.generateCertificate(null))
                                                 .setCreatedBy("JarSigner")
                                                 .setMinSdkVersion(16)
                                                 .setSignatureScheme("V1")
@@ -1347,14 +1349,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         listView.setOnItemClickListener(this);
         navigationView.setNavigationItemSelectedListener(a -> {
             switch (a.getItemId()) {
-                case R.id.browser:
-                    startActivity(new Intent(this, BrowserActivity.class));
-                    drawerLayout.closeDrawer(navigationView);
-                    return true;
-                case R.id.encoder:
-                    Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show();
-                    drawerLayout.closeDrawer(navigationView);
-                    return true;
                 case R.id.codeFormatter:
                     startActivity(new Intent(this, CodeFormatter.class));
                     drawerLayout.closeDrawer(navigationView);
@@ -1366,6 +1360,10 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 case R.id.apkExtractor:
                     startActivity(new Intent(this, ApkExtractor.class));
                     drawerLayout.closeDrawer(navigationView);
+                    return true;
+                case R.id.rootFeatures:
+                    drawerLayout.closeDrawer(navigationView);
+                    NullActivity.create(this);
                     return true;
                 default:
                     drawerLayout.closeDrawer(navigationView);
@@ -1504,7 +1502,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                     CompressUtils.compressZst(f[0].getTarget(), h);
                                     break;
                                 default:
-                                    throw new IllegalArgumentException("Unsupported type: " + Stringx.valueOf(selectedItemIndex));
+                                    throw new IllegalArgumentException("Unsupported type: " + String.valueOf(selectedItemIndex));
                             }
                         } catch (Exception r) {
                             E.print(context, r);
@@ -1702,6 +1700,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         c.show();
     }
 
+    @TestOnly
     final void verifyDexFile() throws Exception {
         final Zip a = new Zip(getPackageManager().getApplicationInfo(packageName, 0).sourceDir);
         final Filex b = new Filex(Utils.getTempDir(), UUID.randomUUID().toString());
@@ -1713,14 +1712,15 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         }
         if (c.isEmpty()) throw new Exception("No dex files found");
         else {
-            final TextWriter d = new TextWriter(new File(applicationExternalDataFolder, ".registered_classes"));
+            final TextWriter d = new TextWriter(new File(getExternalFilesDir(null), ".registered_classes"));
             final StringBuilder h = new StringBuilder();
             for (Filex f : c) {
                 final DexFile g = new DexFile(f.getPath());
                 for (String s : Collections.list(g.entries())) h.append(s).append("\n");
             }
             d.write(h.toString());
-            d.flushAndClose();
+            d.flush();
+            d.close();
         }
     }
 
@@ -1924,7 +1924,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         private final double yottabytes;
 
         public FileSizeTransform(long l) {
-            bytes = getFileSize(l);
+            bytes = l;
             kilobytes = getFileSizeInKilobytes();
             megabytes = getFileSizeInMegaBytes();
             gigabytes = getFileSizeInGigabytes();
@@ -1965,10 +1965,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 return (bytes + "B");
             }
             return "0B";
-        }
-
-        private long getFileSize(long l) {
-            return l;
         }
 
         private double getFileSizeInKilobytes() {
@@ -2053,17 +2049,25 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         }
 
         private long getAvailableMemorySize() {
-            final StatFs stat = new StatFs(path);
-            final long blockSize = stat.getBlockSize();
-            final long availableBlocks = stat.getAvailableBlocks();
-            return availableBlocks * blockSize;
+            try {
+                final StatFs stat = new StatFs(path);
+                final long blockSize = stat.getBlockSize();
+                final long availableBlocks = stat.getAvailableBlocks();
+                return availableBlocks * blockSize;
+            } catch (Exception e) {
+                return -1;
+            }
         }
 
         private long getTotalMemorySize() {
-            final StatFs stat = new StatFs(path);
-            final long blockSize = stat.getBlockSize();
-            final long totalBlocks = stat.getBlockCount();
-            return totalBlocks * blockSize;
+            try {
+                final StatFs stat = new StatFs(path);
+                final long blockSize = stat.getBlockSize();
+                final long totalBlocks = stat.getBlockCount();
+                return totalBlocks * blockSize;
+            } catch (Exception e) {
+                return -1;
+            }
         }
 
         @NonNull

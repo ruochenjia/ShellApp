@@ -3,8 +3,16 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/drawable-anydpi/developer_tools.xml" value="0.3828125" />
+        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/drawable/apk_file.xml" value="0.287109375" />
+        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/drawable/app_icon_background.xml" value="0.287109375" />
+        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/drawable/app_icon_foreground.xml" value="0.3828125" />
         <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/layout/code_formatter.xml" value="0.25815217391304346" />
         <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/layout/compress_file_dialog.xml" value="0.24365942028985507" />
+        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/menu/apk_extractor.xml" value="0.36666666666666664" />
+        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/menu/edit_bookmarks.xml" value="0.36666666666666664" />
+        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/menu/main.xml" value="0.36666666666666664" />
+        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/menu/navigation_menu.xml" value="0.36666666666666664" />
       </map>
     </option>
   </component>

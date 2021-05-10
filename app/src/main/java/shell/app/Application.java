@@ -7,7 +7,9 @@ import android.os.Build;
 
 import androidx.core.content.FileProvider;
 
-import com.mindrex.standardassets.StandardApplication;
+import com.mindrex.shell.BuildConfig;
+import com.mindrex.android.appsupport.StandardApplication;
+import com.topjohnwu.superuser.Shell;
 
 import java.io.File;
 
@@ -15,6 +17,11 @@ import java.io.File;
 public final class Application extends StandardApplication {
     static {
         System.loadLibrary("native-lib");
+        Shell.enableVerboseLogging = BuildConfig.DEBUG;
+        Shell.setDefaultBuilder(Shell.Builder.create()
+                .setFlags(Shell.FLAG_REDIRECT_STDERR)
+                .setTimeout(10)
+        );
     }
 
     public Application() throws Exception {

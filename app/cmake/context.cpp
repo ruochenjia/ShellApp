@@ -1,10 +1,10 @@
 #include <jni.h>
+#include <iostream>
 
-#include <unistd.h>
-#include <sys/reboot.h>
-
-extern "C" jobject
-Java_com_mindrex_standardassets_StandardContext_getDefaultContext(JNIEnv *env, __unused jclass clazz) {
+extern "C" {
+jobject
+Java_com_mindrex_standardassets_StandardContext_getDefaultContext(JNIEnv *env,
+                                                                  __unused jclass clazz) {
     jclass thread = (*env).FindClass("android/app/ActivityThread");
     jmethodID currentThread = (*env).GetStaticMethodID(thread,
                                                        "currentActivityThread",
@@ -16,7 +16,8 @@ Java_com_mindrex_standardassets_StandardContext_getDefaultContext(JNIEnv *env, _
     return context;
 }
 
-void rebootLoader () {
-    sync();
-    reboot(RB_AUTOBOOT);
+jobjectArray
+Java_com_mindrex_util_Reflection_newArray(JNIEnv *env, __unused jclass clazz, jclass a, jint b) {
+    return env->NewObjectArray(b, a, nullptr);
+}
 }

@@ -4,7 +4,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -13,20 +12,19 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatButton;
-import androidx.appcompat.widget.AppCompatImageButton;
 
-import com.mindrex.debugger.Log;
+import com.mindrex.android.debugger.Log;
 import com.mindrex.shell.R;
-import com.mindrex.standardassets.E;
-import com.mindrex.standardassets.LinearLayout;
-import com.mindrex.util.Sfx;
-import com.mindrex.standardassets.Utils;
-import shell.edit.TextEditor;
+import com.mindrex.android.appsupport.E;
+import com.mindrex.android.appsupport.LinearLayout;
+import com.mindrex.android.appsupport.Utils;
 
 import org.json.JSONFormatter;
 
 import java.util.Arrays;
 import java.util.Objects;
+
+import shell.edit.TextEditor;
 
 public final class CodeFormatter extends ActivityFramework {
     private AppCompatButton minifyButton;
@@ -45,7 +43,7 @@ public final class CodeFormatter extends ActivityFramework {
     }
 
     @Override
-    protected final void onCreate(@Nullable Bundle savedInstanceState) {
+    public final void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.code_formatter);
         final LinearLayout l = findViewById(R.id.codeFormatter);
@@ -55,13 +53,6 @@ public final class CodeFormatter extends ActivityFramework {
         outputString = new TextEditor(this, null, getHandler());
         outputString.setSyntax(TextEditor.Syntax.JAVA);
         l.addView(outputString, 2, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        final AppCompatImageButton[] bottomBarButtons = new AppCompatImageButton[]{
-                findViewById(R.id.copyOutputButton),
-                findViewById(R.id.pasteOutputButton),
-                findViewById(R.id.clearInputButton),
-                findViewById(R.id.switchSyntaxButton)
-        };
-        Sfx.nonnull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         findViewById(R.id.formatCodeButton).setOnClickListener(view -> {
             switch (syntaxType) {
                 case 0: // json
@@ -154,12 +145,12 @@ public final class CodeFormatter extends ActivityFramework {
                     throw new IllegalArgumentException("Unsupported syntax type");
             }
         });
-        bottomBarButtons[0].setOnClickListener(view -> {
+        findViewById(R.id.copyOutputButton).setOnClickListener(view -> {
             final ClipboardManager a = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             final ClipData b = ClipData.newPlainText("formatted_code", Objects.requireNonNull(outputString.getText()));
             a.setPrimaryClip(b);
         });
-        bottomBarButtons[1].setOnClickListener(view -> {
+        findViewById(R.id.pasteOutputButton).setOnClickListener(view -> {
             try {
                 final ClipboardManager a = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 final String s = Objects.requireNonNull(a.getPrimaryClip()).getItemAt(0).getText().toString();
@@ -168,11 +159,11 @@ public final class CodeFormatter extends ActivityFramework {
                 Toast.makeText(view.getContext(), e.toString(), Toast.LENGTH_SHORT).show();
             }
         });
-        bottomBarButtons[2].setOnClickListener(view -> {
+        findViewById(R.id.clearInputButton).setOnClickListener(view -> {
             inputString.setText("");
             outputString.setText("");
         });
-        bottomBarButtons[3].setOnClickListener(view -> switchSyntaxMenu.show());
+        findViewById(R.id.switchSyntaxButton).setOnClickListener(view -> switchSyntaxMenu.show());
         switchSyntaxMenu = new AlertDialog.Builder(this);
         switchSyntaxMenu.setTitle(R.string.switch_syntax);
         switchSyntaxMenu.setItems(syntax, (a, b) -> {
@@ -196,20 +187,6 @@ public final class CodeFormatter extends ActivityFramework {
     public final void onResume() {
         super.onResume();
         getContentView().setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public final boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            finish();
-            return true;
-        } else return super.onOptionsItemSelected(item);
-    }
-
-    @NonNull
-    @Override
-    public final Context getContext() {
-        return this;
     }
 
     final void resetContents() {
