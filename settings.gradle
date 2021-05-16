@@ -2,5 +2,7 @@ include ':io'
 project(':io').projectDir = new File(settingsDir, './../../Programming Projects/JavaDesktop/libraries/io')
 include ':annotation'
 project(':annotation').projectDir = new File(settingsDir, './../../Programming Projects/JavaDesktop/libraries/annotation')
+include ':appsupport'
+project(':appsupport').projectDir = new File(settingsDir, './../../Programming Projects/Android/libraries/appsupport')
 include ':app'
 rootProject.name = "Browser"

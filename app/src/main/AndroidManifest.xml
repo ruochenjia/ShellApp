@@ -83,7 +83,7 @@
         android:name="shell.app.Application"
         android:allowBackup="false"
         android:allowClearUserData="false"
-        android:appComponentFactory="com.mindrex.standardassets.ComponentFactory"
+        android:appComponentFactory="com.mindrex.android.appsupport.ComponentFactory"
         android:icon="@mipmap/app_icon"
         android:killAfterRestore="false"
         android:label="@string/app_name"
@@ -98,7 +98,6 @@
         tools:ignore="RtlEnabled"
         tools:replace="android:appComponentFactory"
         tools:targetApi="p">
-
         <meta-data
             android:name="android.resizeableActivity"
             android:value="true" />

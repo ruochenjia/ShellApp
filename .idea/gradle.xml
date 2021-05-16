@@ -12,8 +12,9 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/../../Programming Projects/JavaDesktop/libraries/annotation" />
-            <option value="$PROJECT_DIR$/../../Programming Projects/JavaDesktop/libraries/io" />
+            <option value="$USER_HOME$/Programming Projects/Android/libraries/appsupport" />
+            <option value="$USER_HOME$/Programming Projects/JavaDesktop/libraries/annotation" />
+            <option value="$USER_HOME$/Programming Projects/JavaDesktop/libraries/io" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

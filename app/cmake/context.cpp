@@ -3,7 +3,7 @@
 
 extern "C" {
 jobject
-Java_com_mindrex_standardassets_StandardContext_getDefaultContext(JNIEnv *env,
+Java_com_mindrex_android_appsupport_StandardContext_getDefaultContext(JNIEnv *env,
                                                                   __unused jclass clazz) {
     jclass thread = (*env).FindClass("android/app/ActivityThread");
     jmethodID currentThread = (*env).GetStaticMethodID(thread,

@@ -3,6 +3,7 @@ package shell.app;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
@@ -12,7 +13,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -27,17 +27,21 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.core.content.ContextCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.mindrex.data.Array;
-import com.mindrex.shell.R;
 import com.mindrex.android.appsupport.Color;
 import com.mindrex.android.appsupport.CommandUtils;
+import com.mindrex.android.appsupport.DialogButton;
 import com.mindrex.android.appsupport.E;
 import com.mindrex.android.appsupport.Filex;
+import com.mindrex.android.appsupport.SelectDialog;
+import com.mindrex.android.appsupport.SelectDialogItem;
+import com.mindrex.data.Array;
+import com.mindrex.shell.R;
 import com.topjohnwu.superuser.Shell;
 
 import java.util.ArrayList;
@@ -46,8 +50,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-import shell.app.IconAlertDialogAdaptor.Item;
-
 // Notice: This file might have been changed from original.
 
 public final class ApkExtractor extends ActivityFramework implements TextWatcher, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, Handler.Callback {
@@ -55,24 +57,9 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
     private AppCompatEditText searchBar;
     private CustomAdaptor adaptor;
     private ProgressDialog dialog;
+    private SwipeRefreshLayout refresh;
     private View bottomBar;
     private ApplicationInfo[] info, info1;
-
-    private AlertDialog.Builder menu;
-    private final Item[] menu1 = new Item[]{
-            new Item(R.string.extract_apk, R.drawable.package_extractor),
-            new Item(R.string.application_information, R.drawable.about),
-            new Item(R.string.manage_application, R.drawable.developer_tools),
-            new Item(R.string.disable_package, R.drawable.disable),
-            new Item(R.string.uninstall_package, R.drawable.delete)
-    };
-    private final Item[] menu2 = new Item[]{
-            new Item(R.string.extract_apk, R.drawable.package_extractor),
-            new Item(R.string.application_information, R.drawable.about),
-            new Item(R.string.manage_application, R.drawable.developer_tools),
-            new Item(R.string.enable_package, R.drawable.enable),
-            new Item(R.string.uninstall_package, R.drawable.delete)
-    };
 
     public ApkExtractor() {
     }
@@ -81,13 +68,11 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
     public final void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.apk_extractor);
-        listView = findViewById(R.id.mainContent);
+        listView = findViewById(R.id.list);
         searchBar = findViewById(R.id.searchBar);
         bottomBar = findViewById(R.id.bottomBar);
-        dialog = ProgressDialog.show(this, getResources().getString(R.string.loading), getResources().getString(R.string.please_wait));
-        dialog.show();
-        menu = new AlertDialog.Builder(this);
-        menu.setPositiveButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
+        refresh = findViewById(R.id.refreshLayout);
+        refresh.setRefreshing(true);
         handler.post(this);
         findViewById(R.id.cancelButton).setOnClickListener(view -> {
             adaptor.removeSelections();
@@ -116,7 +101,9 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                 listView.setOnItemLongClickListener(this);
                 searchBar.addTextChangedListener(this);
             case 0:
-                dialog.dismiss();
+                refresh.setRefreshing(false);
+                if (dialog != null)
+                    dialog.dismiss();
                 return true;
             default:
                 return false;
@@ -185,100 +172,104 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
         else bottomBar.setVisibility(View.GONE);
     }
 
+    private boolean exec(String s) throws Exception {
+        CharSequence a = new StringBuilder();
+        for (String b : Shell.su(s).exec().getErr())
+            ((StringBuilder) a).append(b);
+        a = a.toString();
+        if (a.length() > 0)
+            throw new Exception(((String) a));
+        else return true;
+    }
+
     @Override
     public final boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        final String s = adaptor.getItem(position).packageName;
-        menu.setTitle(adaptor.getItem(position).label);
+        final ApplicationInfo a = adaptor.getItem(position);
+        final String s = a.packageName;
         try {
-            if (adaptor.getItem(position).enabled)
-                menu.setAdapter(new IconAlertDialogAdaptor(menu1), (dialog, which) -> {
-                    switch (which) {
-                        case 0:
-                            extractApk(new int[]{position});
-                            break;
-                        case 1:
-                            // unf
-                            break;
-                        case 2:
-                            try {
-                                final Intent i = new Intent();
-                                i.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
-                                i.addCategory(Intent.CATEGORY_DEFAULT);
-                                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                i.setData(Uri.parse("package:" + s));
-                                i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                                i.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-                                startActivity(i);
-                            } catch (Exception e) {
-                                E.print(view.getContext(), e);
-                            }
-                            break;
-                        case 3:
-                            if (CommandUtils.hasRootAccess)
-                                try {
-                                    Shell.su("pm disable " + s);
-                                } catch (Exception t) {
-                                    E.print(view.getContext(), t);
-                                }
-                            else RootRequiredDialog.show(view.getContext());
-                            break;
-                        case 4:
-                            if (CommandUtils.hasRootAccess)
-                                try {
-                                    Shell.su("pm uninstall " + s);
-                                } catch (Exception t) {
-                                    E.print(view.getContext(), t);
-                                }
-                            else RootRequiredDialog.show(view.getContext());
-                            break;
-                        default:
-                            break;
-                    }
-                });
-            else menu.setAdapter(new IconAlertDialogAdaptor(menu2), (dialog, which) -> {
-                switch (which) {
-                    case 0:
-                        extractApk(new int[]{position});
-                        break;
-                    case 1:
+            final DialogButton b = new DialogButton();
+            b.label = getResources().getString(R.string.selection_cancel);
+            b.type = DialogButton.NEGATIVE;
+            b.onClick = (c) -> ((DialogInterface) c).cancel();
+            final SelectDialogItem[] c = a.enabled ? new SelectDialogItem[]{
+                    new SelectDialogItem(getResources().getString(R.string.extract_apk), null, ContextCompat.getDrawable(this, R.drawable.package_extractor), (d) -> extractApk(position)),
+                    new SelectDialogItem(getResources().getString(R.string.application_information), null, ContextCompat.getDrawable(this, R.drawable.about), (d) -> {
                         // unf
-                        break;
-                    case 2:
-                        final Intent i = new Intent();
-                        i.setAction(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS);
-                        i.addCategory(Intent.CATEGORY_DEFAULT);
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        i.setData(Uri.parse("package:" + s));
-                        i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                        i.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-                        startActivity(i);
-                        break;
-                    case 3:
+                    }),
+                    new SelectDialogItem(getResources().getString(R.string.manage_application), null, ContextCompat.getDrawable(this, R.drawable.developer_tools), (d) -> {
+                        try {
+                            final Intent i = new Intent();
+                            i.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+                            i.addCategory(Intent.CATEGORY_DEFAULT);
+                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            i.setData(Uri.parse("package:" + s));
+                            i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                            i.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                            startActivity(i);
+                        } catch (Exception e) {
+                            E.print(view.getContext(), e);
+                        }
+                    }),
+                    new SelectDialogItem(getResources().getString(R.string.disable_package), null, ContextCompat.getDrawable(this, R.drawable.disable), (d) -> {
                         if (CommandUtils.hasRootAccess)
                             try {
-                                Shell.su("pm enable " + s);
+                                assert exec("pm disable " + s);
                             } catch (Exception t) {
                                 E.print(view.getContext(), t);
                             }
-                        else RootRequiredDialog.show(view.getContext());
-                        break;
-                    case 4:
+                        else RootRequiredDialog.show(this);
+                    }),
+                    new SelectDialogItem(getResources().getString(R.string.uninstall_package), null, ContextCompat.getDrawable(this, R.drawable.delete), (d) -> {
                         if (CommandUtils.hasRootAccess)
                             try {
-                                Shell.su("pm uninstall" + s);
+                                assert exec("pm uninstall " + s);
                             } catch (Exception t) {
                                 E.print(view.getContext(), t);
                             }
-                        else RootRequiredDialog.show(view.getContext());
-                        break;
-                    default:
-                        break;
-                }
-            });
+                        else RootRequiredDialog.show(this);
+                    })
+            } : new SelectDialogItem[]{
+                    new SelectDialogItem(getResources().getString(R.string.extract_apk), null, ContextCompat.getDrawable(this, R.drawable.package_extractor), (d) -> extractApk(position)),
+                    new SelectDialogItem(getResources().getString(R.string.application_information), null, ContextCompat.getDrawable(this, R.drawable.about), (d) -> {
+                        // unf
+                    }),
+                    new SelectDialogItem(getResources().getString(R.string.manage_application), null, ContextCompat.getDrawable(this, R.drawable.developer_tools), (d) -> {
+                        try {
+                            final Intent i = new Intent();
+                            i.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+                            i.addCategory(Intent.CATEGORY_DEFAULT);
+                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            i.setData(Uri.parse("package:" + s));
+                            i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                            i.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                            startActivity(i);
+                        } catch (Exception e) {
+                            E.print(view.getContext(), e);
+                        }
+                    }),
+                    new SelectDialogItem(getResources().getString(R.string.enable_package), null, ContextCompat.getDrawable(this, R.drawable.enable), (d) -> {
+                        if (CommandUtils.hasRootAccess)
+                            try {
+                                assert exec("pm disable " + s);
+                            } catch (Exception t) {
+                                E.print(view.getContext(), t);
+                            }
+                        else RootRequiredDialog.show(this);
+                    }),
+                    new SelectDialogItem(getResources().getString(R.string.uninstall_package), null, ContextCompat.getDrawable(this, R.drawable.delete), (d) -> {
+                        if (CommandUtils.hasRootAccess)
+                            try {
+                                assert exec("pm uninstall " + s);
+                            } catch (Exception t) {
+                                E.print(view.getContext(), t);
+                            }
+                        else RootRequiredDialog.show(this);
+                    })
+            };
+            final SelectDialog d = SelectDialog.show(this, a.label, c, b);
         } catch (Exception e) {
-            E.print(view.getContext(), e);
+            E.print(this, e);
         }
-        menu.show();
         return true;
     }
 
@@ -306,7 +297,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
         adaptor.setData(info);
     }
 
-    private void extractApk(int[] pos) {
+    private void extractApk(int... pos) {
         dialog = ProgressDialog.show(this, getResources().getString(R.string.loading), getResources().getString(R.string.please_wait));
         dialog.show();
         handler.post(() -> {

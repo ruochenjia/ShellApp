@@ -21,6 +21,8 @@ import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.ViewTreeObserver;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.Nullable;
@@ -130,6 +132,12 @@ public class TextEditor extends AppCompatTextView implements ViewTreeObserver.On
         setClickable(true);
         setGravity(Gravity.TOP | Gravity.LEFT);
         isViewInitialized = true;
+    }
+
+    private final class EditorFrame extends FrameLayout {
+        private EditorFrame(){
+            super(TextEditor.this.getContext());
+        }
     }
 
     @Override

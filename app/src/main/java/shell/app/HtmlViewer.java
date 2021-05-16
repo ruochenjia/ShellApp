@@ -93,7 +93,7 @@ public final class HtmlViewer extends LinearLayout {
 
     public HtmlViewer(Context context, AttributeSet attrs, int defStyleAttr) throws Exception {
         super(context, attrs, defStyleAttr);
-        this.config = getConfiguration("HtmlViewerConfig");
+        this.config = null;
         this.adBlockEnabled = config.getBoolean("ad_block_enabled", false);
         this.allowCookies = config.getBoolean("allow_cookies", true);
         this.allowThirdPartyCookies = config.getBoolean("allow_third_party_cookies", false);
