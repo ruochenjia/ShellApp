@@ -29,13 +29,13 @@ import androidx.core.content.ContextCompat;
 
 import com.mindrex.shell.R;
 import com.mindrex.android.appsupport.ContextUtils;
-import com.mindrex.android.appsupport.StandardView;
+import com.mindrex.android.appsupport.SupportView;
 
 import java.util.List;
 import java.util.Objects;
 
 @SuppressWarnings({"unused", "RedundantSuppression"})
-public final class TextEditor extends StandardView implements TextWatcher {
+public final class TextEditor extends SupportView implements TextWatcher {
     private EditorText text;
     private final EditorStyle style;
     private boolean editable;

@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
-import com.mindrex.shell.BuildConfig;
 import com.mindrex.shell.R;
 import com.topjohnwu.superuser.Shell;
 

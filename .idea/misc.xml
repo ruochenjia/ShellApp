@@ -1,25 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="DesignSurface">
-    <option name="filePathToZoomLevelMap">
-      <map>
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/drawable-anydpi/developer_tools.xml" value="0.3828125" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/drawable/apk_file.xml" value="0.287109375" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/drawable/app_icon_background.xml" value="0.287109375" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/drawable/app_icon_foreground.xml" value="0.3828125" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/layout/apk_extractor.xml" value="0.1375" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/layout/code_formatter.xml" value="0.25815217391304346" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/layout/compress_file_dialog.xml" value="0.24365942028985507" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/layout/file_manager_items.xml" value="0.2259963768115942" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/menu/apk_extractor.xml" value="0.36666666666666664" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/menu/edit_bookmarks.xml" value="0.36666666666666664" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/menu/main.xml" value="0.36666666666666664" />
-        <entry key="..\:/Users/mindrex/AndroidStudioProjects/Browser/app/src/main/res/menu/navigation_menu.xml" value="0.36666666666666664" />
-      </map>
-    </option>
-  </component>
-  <component name="ExternalStorageConfigurationManager" enabled="true" />
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="17" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="false" project-jdk-name="17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

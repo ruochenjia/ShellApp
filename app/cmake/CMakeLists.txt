@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.10.2)
 project("cmaketest")
 add_library(native-lib SHARED
+        array.cpp
         context.cpp
+        daemon.cpp
         io.cpp
-        io.h
         socket.h
         )
 find_library(log-lib log)

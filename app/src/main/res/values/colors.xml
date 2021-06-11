@@ -1,32 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <resources>
-    <color name="app_background">#a1007af7</color>
     <color name="app_icon_background">#0B00BB</color>
-    <color name="app_icon_new_background">#a5f7a9</color>
     <color name="app_theme">#0B00BB</color>
     <color name="app_theme_half_transparent">#7f0b00bb</color>
     <color name="black">#000000</color>
     <color name="contents">#9c9c9c</color>
     <color name="contents_title">#1a1a1a</color>
-    <color name="contents_title_dark_background">#f0f060</color>
-    <color name="dark_mode_background">#333333</color>
-    <color name="game_background">#88eaea</color>
-    <color name="half_transparent">#7f000000</color>
-    <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
-    <color name="search_button_text">#d0d0d0</color>
-    <color name="secure_sign">#00aa00</color>
     <color name="splash_title">#323232</color>
-    <color name="syntax_builtin">#d79e39</color>
-    <color name="syntax_error">#8800</color>
-    <color name="syntax_keyword">#399ed7</color>
-    <color name="syntax_number">#7ba212</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="text_editor_border">#cfcfcf</color>
     <color name="transparent">#00000000</color>
-    <color name="warning_sign">#ff0000</color>
     <color name="white">#ffffff</color>
     <color name="selected_text_background">#7fffffd0</color>
     <color name="widget_background">#e0e0e0</color>

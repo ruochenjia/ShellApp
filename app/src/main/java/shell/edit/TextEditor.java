@@ -134,12 +134,6 @@ public class TextEditor extends AppCompatTextView implements ViewTreeObserver.On
         isViewInitialized = true;
     }
 
-    private final class EditorFrame extends FrameLayout {
-        private EditorFrame(){
-            super(TextEditor.this.getContext());
-        }
-    }
-
     @Override
     public void run() {
         highLightCode(editable, syntax);
@@ -245,19 +239,20 @@ public class TextEditor extends AppCompatTextView implements ViewTreeObserver.On
         super.setCursorVisible(visible);
     }
 
-    @Deprecated
-    @Override
+    @Deprecated(forRemoval = true)
     public final void setTypeface(@Nullable Typeface tf) {
     }
 
-    @Deprecated
-    @Override
+    @Deprecated(forRemoval = true)
     public final void setTypeface(@Nullable Typeface tf, int style) {
     }
 
-    @Deprecated
-    @Override
+    @Deprecated(forRemoval = true)
     public final void setTextSize(int unit, float size) {
+    }
+
+    @Deprecated(forRemoval = true)
+    public final void setInputType(int type) {
     }
 
     public void setText(String s) {

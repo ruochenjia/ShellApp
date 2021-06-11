@@ -1,15 +1,18 @@
 package shell.app;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.view.View;
 
-@SuppressWarnings("JavaJniMissingFunction")
-public final class NullActivity extends Activity {
+import androidx.annotation.Keep;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+
+public final class NullActivity extends AppCompatActivity {
     private Context base;
 
+    @RequiresApi
     public NullActivity(Context base) {
         attachBaseContext(base);
         this.base = base;

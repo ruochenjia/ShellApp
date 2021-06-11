@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 namespace skt {
-    void mkSkt(const char *path) {
+    inline void mkSkt(const char *path) {
         struct sockaddr_un a;
         a.sun_family = AF_UNIX;
         strncpy(a.sun_path, (char *) path, sizeof(a.sun_path));

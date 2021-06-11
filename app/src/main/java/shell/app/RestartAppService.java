@@ -2,9 +2,9 @@ package shell.app;
 
 import android.content.Intent;
 
-import com.mindrex.android.appsupport.StandardService;
+import com.mindrex.android.appsupport.SupportService;
 
-public final class RestartAppService extends StandardService {
+public final class RestartAppService extends SupportService {
     public RestartAppService() {
     }
 
@@ -16,6 +16,6 @@ public final class RestartAppService extends StandardService {
             startActivity(a);
             stopSelf();
         }, 1000);
-        return super.onStartCommand(intent, flags, startId);
+        return 1;
     }
 }

@@ -1,9 +1,13 @@
-#include "io.h"
+#include <jni.h>
 #include "socket.h"
 #include <fstream>
+#include <utime.h>
+#include <vector>
 #include <filesystem>
 
 namespace fs = std::__fs::filesystem;
+
+using namespace std;
 
 extern "C" {
 void
@@ -22,19 +26,24 @@ Java_com_mindrex_io_NativeFileSystem_copyFile(JNIEnv *env, __unused jobject claz
             else fs::copy_file(a1, b1);
         } else throw runtime_error("Source file does not exist");
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
 }
-jstring
-Java_com_mindrex_io_NativeFileSystem_ls(JNIEnv *env, __unused jobject clazz, jstring s) {
+jobjectArray
+Java_com_mindrex_io_NativeFileSystem_listChildren(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
-        string a;
-        for (const auto &entry : fs::directory_iterator(
-                env->GetStringUTFChars(s, (jboolean *) false)))
-            a += "\n" + entry.path().string();
-        return env->NewStringUTF(a.c_str());
+        vector<string> a;
+        for (const auto &b : fs::directory_iterator(
+                env->GetStringUTFChars(s, (jboolean *) false))) {
+            a.push_back(b.path().string());
+        }
+        jobjectArray b = env->NewObjectArray(a.size(), env->FindClass("java/lang/String"),
+                                             nullptr);
+        for (int i = 0; i < a.size(); i++)
+            env->SetObjectArrayElement(b, i, env->NewStringUTF(a.at(i).c_str()));
+        return b;
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
     return nullptr;
 }
@@ -50,7 +59,7 @@ Java_com_mindrex_io_NativeFileSystem_deleteFile(JNIEnv *env, __unused jobject cl
             } else throw runtime_error("Unsupported file type");
         } else throw runtime_error("Target file does not exist");
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
 }
 void
@@ -65,7 +74,7 @@ Java_com_mindrex_io_NativeFileSystem_renameFile(JNIEnv *env, __unused jobject cl
             throw runtime_error("Destination file already exists");
         else fs::rename(a1, b1);
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
 }
 void
@@ -84,7 +93,7 @@ Java_com_mindrex_io_NativeFileSystem_createSymlink(JNIEnv *env, __unused jobject
             else fs::create_symlink(a1, b1);
         }
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
 }
 void
@@ -99,7 +108,7 @@ Java_com_mindrex_io_NativeFileSystem_createHardLink(JNIEnv *env, __unused jobjec
             throw runtime_error("Destination file already exists");
         else fs::create_hard_link(a1, b1);
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
 }
 void
@@ -111,7 +120,7 @@ Java_com_mindrex_io_NativeFileSystem_createDirectory(JNIEnv *env, __unused jobje
             throw runtime_error("Target file already exists");
         else fs::create_directories(a);
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
 }
 void
@@ -122,7 +131,7 @@ Java_com_mindrex_io_NativeFileSystem_createFile(JNIEnv *env, __unused jobject cl
             throw runtime_error("Target file already exists");
         else ofstream(a).close();
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
 }
 void
@@ -132,7 +141,7 @@ Java_com_mindrex_io_NativeFileSystem_createSocketFile(JNIEnv *env, __unused jobj
     try {
         skt::mkSkt(a.c_str());
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
 }
 jboolean
@@ -150,7 +159,7 @@ Java_com_mindrex_io_NativeFileSystem_getFilePermission(JNIEnv *env, __unused job
         const fs::perms p = fs::status(env->GetStringUTFChars(s, (jboolean *) false)).permissions();
         return (jint) p;
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
     return -1;
 }
@@ -160,7 +169,7 @@ Java_com_mindrex_io_NativeFileSystem_isSymlink(JNIEnv *env, __unused jobject cla
     try {
         return fs::is_symlink(env->GetStringUTFChars(s, (jboolean *) false));
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
     return false;
 }
@@ -170,7 +179,7 @@ Java_com_mindrex_io_NativeFileSystem_isDirectory(JNIEnv *env, __unused jobject c
     try {
         return fs::is_directory(env->GetStringUTFChars(s, (jboolean *) false));
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
     return false;
 }
@@ -180,7 +189,7 @@ Java_com_mindrex_io_NativeFileSystem_isFile(JNIEnv *env, __unused jobject clazz,
     try {
         return fs::is_regular_file(env->GetStringUTFChars(s, (jboolean *) false));
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
     return false;
 }
@@ -190,7 +199,7 @@ Java_com_mindrex_io_NativeFileSystem_isBlockFile(JNIEnv *env, __unused jobject c
     try {
         return fs::is_block_file(env->GetStringUTFChars(s, (jboolean *) false));
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
     return false;
 }
@@ -200,8 +209,63 @@ Java_com_mindrex_io_NativeFileSystem_isSocketFile(JNIEnv *env, __unused jobject 
     try {
         return fs::is_socket(env->GetStringUTFChars(s, (jboolean *) false));
     } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("java/io/IOException"), e.what());
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
     return false;
+}
+
+jlong
+Java_com_mindrex_io_NativeFileSystem_getFileSize(JNIEnv *env, __unused jobject clazz, jstring s) {
+    try {
+        return fs::file_size(env->GetStringUTFChars(s, (jboolean *) false));
+    } catch (const exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    }
+    return -1;
+}
+
+jlong *Java_com_mindrex_io_NativeFileSystem_getFileLastModified(JNIEnv *env, __unused jobject clazz,
+                                                                jstring s) {
+    try {
+        struct stat attr{};
+        stat(env->GetStringUTFChars(s, (jboolean *) false), &attr);
+        const long *a = &attr.st_mtim.tv_nsec;
+        return (jlong *) a;
+    } catch (const exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    }
+    return (jlong *) -1l;
+}
+
+void Java_com_mindrex_io_NativeFileSystem_setFileLastModified(JNIEnv *env, __unused jobject clazz,
+                                                              jstring s, jlong j) {
+    const char *a = env->GetStringUTFChars(s, (jboolean *) false);
+    struct stat attr{};
+    struct utimbuf new_times{};
+    stat(a, &attr);
+    new_times.actime = attr.st_atime;
+    new_times.modtime = j;
+    utime(a, &new_times);
+}
+
+void Java_com_mindrex_io_NativeFileSystem_setFilePermission(JNIEnv *env, __unused jobject clazz,
+                                                            jstring s, jint i) {
+//    try {
+//        fs::permissions(env->GetStringUTFChars(s, (jboolean *) false), (fs::perms) i,
+//                        fs::perm_options::replace);
+//    } catch (const exception &e) {
+//        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+//    }
+    const char *a = env->GetStringUTFChars(s, (jboolean *) false);
+    const string b = to_string(i);
+    system(("com/mindrex/gm/NativeInterfaceException" + b + " \"" + a + "\"").c_str());
+}
+
+void
+Java_com_mindrex_io_NativeFileSystem_setFileOwner(JNIEnv *env, __unused jobject clazz, jstring s,
+                                                  jint a, jint b) {
+    if (chown(env->GetStringUTFChars(s, (jboolean *) false), a, b) == -1)
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"),
+                      "Cannot run chmod");
 }
 }

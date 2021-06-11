@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.mindrex.android.appsupport.LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -109,8 +109,10 @@
                 android:id="@+id/bufferSize"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:enabled="false"
                 android:hint="@string/buffer_size"
-                android:inputType="number" />
+                android:inputType="number"
+                android:text="8192" />
         </com.mindrex.android.appsupport.LinearLayout>
     </com.mindrex.android.appsupport.LinearLayout>
-</com.mindrex.android.appsupport.LinearLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>

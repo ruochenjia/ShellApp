@@ -13,14 +13,17 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatButton;
 
-import com.mindrex.android.debugger.Log;
-import com.mindrex.shell.R;
 import com.mindrex.android.appsupport.E;
 import com.mindrex.android.appsupport.LinearLayout;
 import com.mindrex.android.appsupport.Utils;
+import com.mindrex.android.debugger.Log;
+import com.mindrex.data.ArrayHolder;
+import com.mindrex.data.DataStream;
+import com.mindrex.shell.R;
 
-import org.json.JSONFormatter;
+import com.mindrex.util.json.JSONFormatter;
 
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -34,7 +37,7 @@ public final class CodeFormatter extends ActivityFramework {
     private byte syntaxType = 0;
     private final String[] syntax = new String[]{
             "JSON",
-            "JSON (Alphabetical order)",
+            "JSON2",
             "XML/HTML",
             "CSS"
     };
@@ -59,27 +62,26 @@ public final class CodeFormatter extends ActivityFramework {
                     try {
                         if (!inputString.isEmpty())
                             try {
-                                outputString.setText(new JSONFormatter(inputString.toString()).format(false));
+                                outputString.setText(new JSONFormatter(inputString.toString(), 2).format(JSONFormatter.SORT_DISABLED));
                             } catch (Exception e) {
                                 outputString.setText(R.string.json_invalid_layout);
                             }
                         else outputString.setText(R.string.string_empty_message);
                     } catch (Exception e) {
-                        E.print(view.getContext(), e);
+                        E.print(this, e);
                     }
                     break;
                 case 1: {
                     try {
                         if (!inputString.isEmpty())
                             try {
-                                outputString.setText(new JSONFormatter(inputString.toString()).format(true));
+                                outputString.setText(new JSONFormatter(inputString.toString(), 2).format(JSONFormatter.SORT_DEFAULT));
                             } catch (Exception e) {
                                 outputString.setText(R.string.json_invalid_layout);
                             }
                         else outputString.setText(R.string.string_empty_message);
                     } catch (Exception e) {
-                        Log.c(this, e);
-                        //E.print(view.getContext(), e);
+                        E.print(this, e);
                     }
                     break;
                 }
@@ -93,12 +95,12 @@ public final class CodeFormatter extends ActivityFramework {
                             }
                         else outputString.setText(R.string.string_empty_message);
                     } catch (Exception e) {
-                        E.print(view.getContext(), e);
+                        E.print(this, e);
                     }
                     break;
                 case 3: // css (unf)
                     outputString.setText("");
-                    Toast.makeText(view.getContext(), R.string.coming_soon, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show();
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported syntax type");
@@ -111,7 +113,7 @@ public final class CodeFormatter extends ActivityFramework {
                         outputString.setText("");
                         if (!inputString.isEmpty())
                             try {
-                                outputString.setText(new JSONFormatter(inputString.toString(), -1).format(false));
+                                outputString.setText(new JSONFormatter(inputString.toString(), -1).format(JSONFormatter.SORT_DISABLED));
                             } catch (Exception e) {
                                 outputString.setText(R.string.json_invalid_layout);
                             }
@@ -119,7 +121,7 @@ public final class CodeFormatter extends ActivityFramework {
                             outputString.setText(R.string.string_empty_message);
                         }
                     } catch (Exception e) {
-                        E.print(view.getContext(), e);
+                        E.print(this, e);
                     }
                     break;
                 case 1:
@@ -127,19 +129,23 @@ public final class CodeFormatter extends ActivityFramework {
                         outputString.setText("");
                         if (!inputString.isEmpty())
                             try {
-                                outputString.setText(new JSONFormatter(inputString.toString(), -1).format(true));
+                                outputString.setText(new JSONFormatter(inputString.toString(), -1).format(JSONFormatter.SORT_DEFAULT));
                             } catch (Exception e) {
-                                outputString.setText(e.toString());
+                                final DataStream a = new DataStream();
+                                e.printStackTrace(new PrintStream(a));
+                                a.flush();
+                                a.close();
+                                outputString.setText(a.toString());
                             }
                         else outputString.setText(R.string.string_empty_message);
                     } catch (Exception e) {
-                        E.print(view.getContext(), e);
+                        E.print(this, e);
                     }
                     break;
                 case 2: // xml (unf)
                 case 3: // css (unf)
                     outputString.setText("");
-                    Toast.makeText(view.getContext(), R.string.coming_soon, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show();
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported syntax type");
@@ -156,7 +162,7 @@ public final class CodeFormatter extends ActivityFramework {
                 final String s = Objects.requireNonNull(a.getPrimaryClip()).getItemAt(0).getText().toString();
                 inputString.setText(s);
             } catch (Exception e) {
-                Toast.makeText(view.getContext(), e.toString(), Toast.LENGTH_SHORT).show();
+                E.print(this, e);
             }
         });
         findViewById(R.id.clearInputButton).setOnClickListener(view -> {

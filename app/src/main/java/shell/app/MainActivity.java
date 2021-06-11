@@ -2,7 +2,6 @@ package shell.app;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -64,32 +63,37 @@ import com.mindrex.android.appsupport.Color;
 import com.mindrex.android.appsupport.CommandUtils;
 import com.mindrex.android.appsupport.E;
 import com.mindrex.android.appsupport.Filex;
+import com.mindrex.android.appsupport.htmlviewer.HtmlViewer;
 import com.mindrex.android.appsupport.LinearLayout;
-import com.mindrex.android.appsupport.Storage;
 import com.mindrex.android.appsupport.Thumbnail;
 import com.mindrex.android.appsupport.Utils;
 import com.mindrex.android.debugger.Log;
 import com.mindrex.annotation.TestOnly;
 import com.mindrex.data.Array;
+import com.mindrex.gm.GmSystem;
+import com.mindrex.io.ArchiveEntry;
+import com.mindrex.io.ArchiveInput;
 import com.mindrex.io.CompressLevel;
-import com.mindrex.io.CompressMethod;
 import com.mindrex.io.CompressUtils;
 import com.mindrex.io.FileSystem;
-import com.mindrex.io.IO;
 import com.mindrex.io.IOUtils;
 import com.mindrex.io.KeyUtils;
-import com.mindrex.io.SevenZ;
-import com.mindrex.io.Tar;
+import com.mindrex.io.SevenZInput;
+import com.mindrex.io.SevenZOutput;
+import com.mindrex.io.TarInput;
+import com.mindrex.io.TarOutput;
 import com.mindrex.io.TextWriter;
-import com.mindrex.io.Zip;
+import com.mindrex.io.ZipEntry;
+import com.mindrex.io.ZipInput;
+import com.mindrex.io.ZipOutput;
 import com.mindrex.shell.R;
 import com.mindrex.util.Sfx;
 import com.mindrex.util.SignJar;
-import com.mindrex.virtual.test.v1.android.app.Activity.Stub;
 import com.topjohnwu.superuser.Shell;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -148,7 +152,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         public final void run() {
             fileList.clear();
             final Filex v = new Filex(currentFile.toString());
-            if (!new File(v.getPath()).canRead() || CommandUtils.hasRootAccess) {
+            if (new File(v.getPath()).canRead() || CommandUtils.hasRootAccess) {
                 final Filex[] a = v.list();
                 if (a.length > 0)
                     fileList.addAll(new Array<>(a));
@@ -189,7 +193,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                             break;
                         case APK:
                             try {
-                                final PackageManager c = getContext().getPackageManager();
+                                final PackageManager c = getPackageManager();
                                 final ApplicationInfo d = c.getPackageArchiveInfo(f.getPath(), 0).applicationInfo;
                                 b.icon = c.getApplicationIcon(d);
                             } catch (Exception e) {
@@ -267,14 +271,24 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         }
     };
 
-    public MainActivity() throws Exception {
-        Stub.main(new String[]{Storage.STORAGE_INTERNAL + "/demo.apk"});
+    public MainActivity() {
     }
 
     @Override
-    protected final void onCreate(@Nullable Bundle savedInstanceState) {
+    public final void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.file_manager);
+
+        final AlertDialog.Builder a = new AlertDialog.Builder(this);
+        a.setTitle("Title");
+        a.setMessage("Message");
+        a.setView(new HtmlViewer(this, null));
+        a.setPositiveButton("PositiveButton", (b, c) -> b.dismiss());
+        a.setNegativeButton("NegativeButton", (b, c) -> {
+        });
+        a.setNeutralButton("NeutralButton", (b, c) -> {
+        });
+        a.show();
 
         listView = findViewById(R.id.mainContent);
         contentView = findViewById(R.id.fileManagerContentView);
@@ -600,7 +614,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     @Override
     protected final void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && data != null) {
+        if (resultCode == -1 /*RESULT_OK*/ && data != null) {
             final Uri uri = data.getData();
             if (uri != null && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -619,7 +633,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         if (selectedCount == 0)
             try {
                 Filex f = new Filex(fileList.get(position));
-                final Context c = view.getContext();
                 if (f.isDirectory()) {
                     currentFile.setValue(f.getPath());
                     refreshContent();
@@ -629,9 +642,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     final Filex xf = f;
                     FileExtension fileExtension = FileExtension.CheckFileExtension(xf);
                     if (fileExtension == FileExtension.IMAGE) {
-                        Application.sendIntentData(c, xf.getTarget(), "image/*");
+                        Application.sendIntentData(this, xf.getTarget(), "image/*");
                     } else if (fileExtension == FileExtension.MUSIC) {
-                        Application.sendIntentData(c, xf.getTarget(), "audio/*");
+                        Application.sendIntentData(this, xf.getTarget(), "audio/*");
                     } else if (fileExtension == FileExtension.TEXT || fileExtension == FileExtension.CODE) {
                         final Intent i = new Intent(this, TextEditorActivity.class);
                         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -641,13 +654,13 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         startActivity(i);
                     } else if (fileExtension == FileExtension.ZIP_ARCHIVE || fileExtension == FileExtension.ARCHIVE) {
                         final String[] a = new String[]{
-                                c.getResources().getString(R.string.view),
-                                c.getResources().getString(R.string.extract_here),
-                                c.getResources().getString(R.string.extract_to_archive_name),
-                                c.getResources().getString(R.string.extract_to_path)
+                                this.getResources().getString(R.string.view),
+                                this.getResources().getString(R.string.extract_here),
+                                this.getResources().getString(R.string.extract_to_archive_name),
+                                this.getResources().getString(R.string.extract_to_path)
                         };
                         final String s = xf.getName();
-                        final AlertDialog.Builder b = new AlertDialog.Builder(c);
+                        final AlertDialog.Builder b = new AlertDialog.Builder(this);
                         b.setTitle(s);
                         b.setPositiveButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
                         if (xf.getExtension().equals(".7z")) {
@@ -657,19 +670,21 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                         // op
                                         break;
                                     case 1:
-                                        this.dialog = ProgressDialog.show(c, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                                         this.dialog.show();
                                         handler.post(() -> {
                                             try {
-                                                new SevenZ(xf.getPath()).extract(new File(currentFile.toString()));
+                                                final ArchiveInput c = new SevenZInput(new FileInputStream(xf.getPath()));
+                                                c.extract(currentFile.toString());
+                                                c.close();
                                             } catch (Exception e) {
-                                                E.print(view.getContext(), e);
+                                                E.print(this, e);
                                             }
                                             handler.sendEmptyMessage(1);
                                         });
                                         break;
                                     case 2:
-                                        this.dialog = ProgressDialog.show(c, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                                         this.dialog.show();
                                         handler.post(() -> {
                                             try {
@@ -682,9 +697,10 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                     else d.delete();
                                                     d.mkdir();
                                                 }
-                                                new SevenZ(xf.getPath()).extract(d.getTarget());
+                                                final ArchiveInput c = new SevenZInput(new FileInputStream(xf.getPath()));
+                                                c.extract(r);
                                             } catch (Exception e) {
-                                                E.print(view.getContext(), e);
+                                                E.print(this, e);
                                             }
                                             handler.sendEmptyMessage(1);
                                         });
@@ -708,19 +724,21 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                         // op
                                         break;
                                     case 1:
-                                        this.dialog = ProgressDialog.show(c, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                                         this.dialog.show();
                                         handler.post(() -> {
                                             try {
-                                                new Tar(xf.getPath()).extract(new File(currentFile.toString()));
+                                                final ArchiveInput c = new TarInput(new FileInputStream(xf.getPath()));
+                                                c.extract(currentFile.toString());
+                                                c.close();
                                             } catch (Exception e) {
-                                                E.print(view.getContext(), e);
+                                                E.print(this, e);
                                             }
                                             handler.sendEmptyMessage(1);
                                         });
                                         break;
                                     case 2:
-                                        this.dialog = ProgressDialog.show(c, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                                         this.dialog.show();
                                         handler.post(() -> {
                                             try {
@@ -733,9 +751,11 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                     else d.delete();
                                                     d.mkdir();
                                                 }
-                                                new Tar(xf.getPath()).extract(d.getTarget());
+                                                final ArchiveInput c = new TarInput(new FileInputStream(xf.getPath()));
+                                                c.extract(r);
+                                                c.close();
                                             } catch (Exception e) {
-                                                E.print(view.getContext(), e);
+                                                E.print(this, e);
                                             }
                                             handler.sendEmptyMessage(1);
                                         });
@@ -759,19 +779,21 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                         // op
                                         break;
                                     case 1:
-                                        this.dialog = ProgressDialog.show(c, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                                         this.dialog.show();
                                         handler.post(() -> {
                                             try {
-                                                new Zip(xf.getPath()).extract(new File(currentFile.toString()));
+                                                final ZipInput c = new ZipInput(xf.getPath());
+                                                c.extract(currentFile.toString());
+                                                c.close();
                                             } catch (Exception e) {
-                                                E.print(view.getContext(), e);
+                                                E.print(this, e);
                                             }
                                             handler.sendEmptyMessage(1);
                                         });
                                         break;
                                     case 2:
-                                        this.dialog = ProgressDialog.show(c, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                                         this.dialog.show();
                                         handler.post(() -> {
                                             try {
@@ -784,9 +806,11 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                     else d.delete();
                                                     d.mkdir();
                                                 }
-                                                new Zip(xf.getPath()).extract(d.getPath());
+                                                final ZipInput c = new ZipInput(xf.getPath());
+                                                c.extract(currentFile.toString());
+                                                c.close();
                                             } catch (Exception e) {
-                                                E.print(view.getContext(), e);
+                                                E.print(this, e);
                                             }
                                             handler.sendEmptyMessage(1);
                                         });
@@ -806,49 +830,48 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         }
                         b.show();
                     } else if (fileExtension == FileExtension.VIDEO) {
-                        Application.sendIntentData(c, xf.getTarget(), "video/*");
+                        Application.sendIntentData(this, xf.getTarget(), "video/*");
                     } else if (fileExtension == FileExtension.XAPK) {// unf
                     } else if (fileExtension == FileExtension.HTML) {
-                        Application.sendIntentData(c, xf.getTarget(), "text/html");
+                        Application.sendIntentData(this, xf.getTarget(), "text/html");
                     } else if (fileExtension == FileExtension.PDF) {
-                        Application.sendIntentData(c, xf.getTarget(), "application/pdf");
+                        Application.sendIntentData(this, xf.getTarget(), "application/pdf");
                     } else if (fileExtension == FileExtension.APK) {
-                        Application.sendIntentData(c, xf.getTarget(), "application/vnd.android.package-archive");
+                        Application.sendIntentData(this, xf.getTarget(), "application/vnd.android.package-archive");
                     } else if (fileExtension == FileExtension.COMPRESSED) {
-                        final AlertDialog.Builder d = new AlertDialog.Builder(view.getContext());
+                        final AlertDialog.Builder d = new AlertDialog.Builder(this);
                         final String s = xf.getName();
                         d.setTitle(s);
                         d.setMessage(R.string.extract_file_confirm_message);
                         d.setPositiveButton(R.string.selection_confirm, (dialog, which) -> {
-                            this.dialog = ProgressDialog.show(c, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                            this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                             this.dialog.show();
                             handler.post(() -> {
                                 try {
-                                    final String n = xf.getPath();
                                     ArchiveType archiveType = ArchiveType.fromFileExtension(s);
                                     if (archiveType == ArchiveType.BROTLI) {
-                                        CompressUtils.extractBrotli(n, IOUtils.removeFileExtension(n));
+                                        CompressUtils.extractBrotli(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                     } else if (archiveType == ArchiveType.BZIP2) {
-                                        CompressUtils.extractBz2(n, IOUtils.removeFileExtension(n));
+                                        CompressUtils.extractBz2(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                     } else if (archiveType == ArchiveType.GZIP) {
-                                        CompressUtils.extractGz(n, IOUtils.removeFileExtension(n));
+                                        CompressUtils.extractGz(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                     } else if (archiveType == ArchiveType.LZ4) {
-                                        CompressUtils.extractLz4(n, IOUtils.removeFileExtension(n));
+                                        CompressUtils.extractLz4(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                     } else if (archiveType == ArchiveType.PACK200) {
-                                        CompressUtils.extractPack200(n, IOUtils.removeFileExtension(n));
+                                        CompressUtils.extractPack200(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                     } else if (archiveType == ArchiveType.SNAPPY) {
-                                        CompressUtils.extractSnappy(n, IOUtils.removeFileExtension(n));
+                                        CompressUtils.extractSnappy(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                     } else if (archiveType == ArchiveType.XZ) {
-                                        CompressUtils.extractXz(n, IOUtils.removeFileExtension(n));
+                                        CompressUtils.extractXz(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                     } else if (archiveType == ArchiveType.Z) {
-                                        CompressUtils.extractZ(n, IOUtils.removeFileExtension(n));
+                                        CompressUtils.extractZ(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                     } else if (archiveType == ArchiveType.ZSTD) {
-                                        CompressUtils.extractZst(n, IOUtils.removeFileExtension(n));
+                                        CompressUtils.extractZst(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                     } else {
                                         throw new IllegalArgumentException("Unsupported file type: " + s);
                                     }
                                 } catch (Exception l) {
-                                    E.print(view.getContext(), l);
+                                    E.print(this, l);
                                 }
                                 handler.sendEmptyMessage(1);
                             });
@@ -860,14 +883,14 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         try {
                             final MimeTypeMap m = MimeTypeMap.getSingleton();
                             final String j = xf.getName().substring(xf.getName().indexOf(".") + 1);
-                            Application.sendIntentData(c, xf.getTarget(), m.getMimeTypeFromExtension(j));
+                            Application.sendIntentData(this, xf.getTarget(), m.getMimeTypeFromExtension(j));
                         } catch (Exception e) {
-                            E.print(view.getContext(), e);
+                            E.print(this, e);
                         }
                     }
                 }
             } catch (Exception e) {
-                E.print(view.getContext(), e);
+                E.print(this, e);
             }
         else setSelection(position);
     }
@@ -939,9 +962,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             refreshContent();
         });
         createButton.setOnClickListener(view -> {
-            final AlertDialog.Builder a = new AlertDialog.Builder(view.getContext());
+            final AlertDialog.Builder a = new AlertDialog.Builder(this);
             a.setTitle(R.string.create);
-            final AppCompatEditText b = new AppCompatEditText(view.getContext());
+            final AppCompatEditText b = new AppCompatEditText(this);
             b.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
             b.setHint(R.string.file_name);
             a.setView(b);
@@ -953,15 +976,15 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         if (!f.exists()) try {
                             f.mkdir();
                         } catch (Exception e) {
-                            E.print(view.getContext(), e);
+                            E.print(this, e);
                         }
                         else
-                            Toast.makeText(view.getContext(), R.string.file_exists_message, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.file_exists_message, Toast.LENGTH_SHORT).show();
                         handler.postDelayed(this::refreshContent, 200);
                     } else
-                        Toast.makeText(view.getContext(), R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
                 } else
-                    Toast.makeText(view.getContext(), R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
             });
             a.setNegativeButton(R.string.file, (dialog, which) -> {
                 if (b.getText() != null) {
@@ -971,15 +994,15 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         if (!f.exists()) try {
                             f.createNewFile();
                         } catch (Exception e) {
-                            E.print(view.getContext(), e);
+                            E.print(this, e);
                         }
                         else
-                            Toast.makeText(view.getContext(), R.string.file_exists_message, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.file_exists_message, Toast.LENGTH_SHORT).show();
                         handler.postDelayed(this::refreshContent, 200);
                     } else
-                        Toast.makeText(view.getContext(), R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
                 } else
-                    Toast.makeText(view.getContext(), R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
             });
             a.setNeutralButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
             a.show();
@@ -990,7 +1013,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     finish();
                 else {
                     doubleBackToExitPressedOnce = true;
-                    Toast.makeText(view.getContext(), R.string.back_key_exit_app_notice, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.back_key_exit_app_notice, Toast.LENGTH_SHORT).show();
                     new android.os.Handler().postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
                 }
             } else
@@ -998,7 +1021,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     currentFile.setValue(Sfx.nonnull(new Filex(currentFile.toString()).getParentPath()));
                     refreshContent();
                 } catch (Exception e) {
-                    E.print(view.getContext(), e);
+                    E.print(this, e);
                 }
         });
         refreshButton.setOnClickListener(view -> refreshContent());
@@ -1032,7 +1055,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             extractingFile = false;
         });
         deleteFileButton.setOnClickListener(view -> {
-            final AlertDialog.Builder a = new AlertDialog.Builder(view.getContext());
+            final AlertDialog.Builder a = new AlertDialog.Builder(this);
             a.setTitle(R.string.delete);
             a.setMessage(R.string.delete_file_confirm_message);
             a.setPositiveButton(R.string.selection_confirm, (_dialog, which) -> {
@@ -1045,7 +1068,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                             try {
                                 f.delete();
                             } catch (Exception e) {
-                                E.print(view.getContext(), e);
+                                E.print(this, e);
                             }
                         }
                     }
@@ -1056,8 +1079,8 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             a.show();
         });
         moreItemButton.setOnClickListener(view -> {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
-            final AlertDialog.Builder a = new AlertDialog.Builder(view.getContext());
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            final AlertDialog.Builder a = new AlertDialog.Builder(this);
             builder.setNegativeButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
             if (selectedCount == 1) {
                 for (int i = 0; i < selection.length; i++) {
@@ -1081,7 +1104,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                 break;
                             case 1: // rename
                                 a.setTitle(R.string.rename);
-                                final AppCompatEditText b = new AppCompatEditText(view.getContext());
+                                final AppCompatEditText b = new AppCompatEditText(this);
                                 b.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
                                 b.setHint(R.string.file_name);
                                 b.setText(f.getName());
@@ -1093,19 +1116,19 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                             try {
                                                 f.moveTo(new Filex(currentFile.toString(), b.getText().toString()));
                                             } catch (Exception e) {
-                                                E.print(view.getContext(), e);
+                                                E.print(this, e);
                                             }
                                             handler.postDelayed(this::refreshContent, 200);
                                         } else
-                                            Toast.makeText(view.getContext(), R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
                                     } else
-                                        Toast.makeText(view.getContext(), R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
                                 });
                                 a.setNegativeButton(R.string.selection_cancel, (c, d) -> c.cancel());
                                 a.show();
                                 break;
                             case 2: // compress
-                                showCompressDialog(view.getContext(), f);
+                                showCompressDialog(new Filex[]{f});
                                 break;
                             case 3: // properties
                                 // properties
@@ -1122,7 +1145,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         builder.setItems(moreItemContextMenu2, (dialog, which) -> {
                             switch (which) {
                                 case 0: // open with
-                                    Application.sendIntentData(view.getContext(), f.getTarget(), "*/*");
+                                    Application.sendIntentData(this, f.getTarget(), "*/*");
                                     break;
                                 case 1: // move
                                     for (int l = 0; l < selection.length; l++) {
@@ -1136,7 +1159,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                     break;
                                 case 2: // rename
                                     a.setTitle(R.string.rename);
-                                    final AppCompatEditText b = new AppCompatEditText(view.getContext());
+                                    final AppCompatEditText b = new AppCompatEditText(this);
                                     b.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
                                     b.setHint(R.string.file_name);
                                     b.setText(f.getName());
@@ -1148,24 +1171,24 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 try {
                                                     f.moveTo(new Filex(currentFile.toString(), b.getText().toString()));
                                                 } catch (Exception e) {
-                                                    E.print(view.getContext(), e);
+                                                    E.print(this, e);
                                                 }
                                                 handler.postDelayed(this::refreshContent, 200);
                                             } else
-                                                Toast.makeText(view.getContext(), R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
                                         } else
-                                            Toast.makeText(view.getContext(), R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
                                     });
                                     a.setNegativeButton(R.string.selection_cancel, (c, d) -> c.cancel());
                                     a.show();
                                     break;
                                 case 3: // compress
-                                    showCompressDialog(view.getContext(), f);
+                                    showCompressDialog(new Filex[]{f});
                                     break;
                                 case 4: // share
                                     i.setAction(Intent.ACTION_SEND);
                                     i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    i.setData(FileProvider.getUriForFile(view.getContext(), packageName + ".provider", f.getTarget()));
+                                    i.setData(FileProvider.getUriForFile(this, packageName + ".provider", f.getTarget()));
                                     i.setType("*/*");
                                     startActivity(Intent.createChooser(i, f.getName()));
                                     break;
@@ -1196,7 +1219,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         builder.setItems(moreItemContextMenu0, (dialog, which) -> {
                             switch (which) {
                                 case 0: // open with
-                                    Application.sendIntentData(view.getContext(), f.getTarget(), "*/*");
+                                    Application.sendIntentData(this, f.getTarget(), "*/*");
                                     break;
                                 case 1: // move
                                     for (int l = 0; l < selection.length; l++) {
@@ -1210,7 +1233,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                     break;
                                 case 2: // rename
                                     a.setTitle(R.string.rename);
-                                    final AppCompatEditText b = new AppCompatEditText(view.getContext());
+                                    final AppCompatEditText b = new AppCompatEditText(this);
                                     b.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
                                     b.setHint(R.string.file_name);
                                     b.setText(f.getName());
@@ -1222,24 +1245,24 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 try {
                                                     f.moveTo(new Filex(currentFile.toString(), b.getText().toString()));
                                                 } catch (Exception e) {
-                                                    E.print(view.getContext(), e);
+                                                    E.print(this, e);
                                                 }
                                                 handler.postDelayed(this::refreshContent, 200);
                                             } else
-                                                Toast.makeText(view.getContext(), R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
                                         } else
-                                            Toast.makeText(view.getContext(), R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
                                     });
                                     a.setNegativeButton(R.string.selection_cancel, (c, d) -> c.cancel());
                                     a.show();
                                     break;
                                 case 3: // compress
-                                    showCompressDialog(view.getContext(), f);
+                                    showCompressDialog(new Filex[]{f});
                                     break;
                                 case 4: // share
                                     i.setAction(Intent.ACTION_SEND);
                                     i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    i.setData(FileProvider.getUriForFile(view.getContext(), packageName + ".provider", f.getTarget()));
+                                    i.setData(FileProvider.getUriForFile(this, packageName + ".provider", f.getTarget()));
                                     i.setType("*/*");
                                     startActivity(Intent.createChooser(i, f.getName()));
                                     break;
@@ -1273,7 +1296,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                 extractingFile = false;
                                 break;
                             case 1: // compress
-                                showCompressDialog(view.getContext(), f);
+                                showCompressDialog(f);
                             case 2: // properties
                                 // properties
                                 break;
@@ -1298,7 +1321,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         });
         pasteButton.setOnClickListener(view -> {
             if (extractingFile) {
-                dialog = ProgressDialog.show(view.getContext(), getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                 this.dialog.show();
                 handler.post(() -> {
                     // Looper.prepare();
@@ -1307,16 +1330,22 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         final String s = a.getName();
                         if (s.toLowerCase().endsWith(".7z")) {
                             final Filex b = new Filex(currentFile.toString(), s.replace(".7z", ""));
-                            new SevenZ(a.getPath()).extract(b.getTarget());
+                            final SevenZInput c = new SevenZInput(new FileInputStream(a.getPath()));
+                            c.extract(b.getPath());
+                            c.close();
                         } else if (s.toLowerCase().endsWith(".tar")) {
                             final Filex b = new Filex(currentFile.toString(), s.replace(".tar", ""));
-                            new Tar(a.getPath()).extract(b.getTarget());
+                            final TarInput c = new TarInput(new FileInputStream(a.getPath()));
+                            c.extract(b.getPath());
+                            c.close();
                         } else if (s.toLowerCase().endsWith(".zip")) {
                             final Filex b = new Filex(currentFile.toString(), s.replace(".zip", ""));
-                            new Zip(a.getPath()).extract(b.getPath());
+                            final ZipInput c = new ZipInput(a.getPath());
+                            c.extract(b.getPath());
+                            c.close();
                         } else throw new Exception("Invalid extension");
                     } catch (Exception e) {
-                        E.print(view.getContext(), e);
+                        E.print(this, e);
                     }
                     handler.sendEmptyMessage(0);
                 });
@@ -1331,9 +1360,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         cancelCopyButton.setOnLongClickListener(Utils::toastContentDescription);
         pasteButton.setOnLongClickListener(Utils::toastContentDescription);
         toolbar.setOnClickListener(view -> {
-            final AlertDialog.Builder a = new AlertDialog.Builder(view.getContext());
+            final AlertDialog.Builder a = new AlertDialog.Builder(this);
             a.setTitle(R.string.jump_to_path);
-            final AppCompatEditText b = new AppCompatEditText(view.getContext());
+            final AppCompatEditText b = new AppCompatEditText(this);
             b.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
             b.setHint(R.string.path);
             b.setText(currentFile.toString());
@@ -1363,7 +1392,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     return true;
                 case R.id.rootFeatures:
                     drawerLayout.closeDrawer(navigationView);
-                    NullActivity.create(this);
+                    GmSystem.crs();
                     return true;
                 default:
                     drawerLayout.closeDrawer(navigationView);
@@ -1375,30 +1404,22 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         fileManagerInitialized = true;
     }
 
-    final void showCompressDialog(Context context, Filex f) {
-        showCompressDialog(context, new Filex[]{f});
-    }
-
-    final void showCompressDialog(Context context, Filex[] f) {
-        final String[] supportedArchiveFormats = LUtils.toString(ArchiveType.supportedArchiveTypes());
-        final String[] supportedPrimaryArchiveFormats = LUtils.toString(ArchiveType.primaryArchiveTypes());
-        final String[] archiveFormatExtensions = LUtils.toString(ArchiveType.supportedArchiveTypes(), (byte) 1);
+    final void showCompressDialog(Filex[] f) {
         if (f.length > 0) {
-            final AlertDialog.Builder a = new AlertDialog.Builder(context);
+            final AlertDialog.Builder a = new AlertDialog.Builder(this);
             a.setTitle(R.string.compress);
-            final View v = LayoutInflater.from(context).inflate(R.layout.compress_file_dialog, null);
+            final View v = LayoutInflater.from(this).inflate(R.layout.compress_file_dialog, null, false);
             final AppCompatEditText b = v.findViewById(R.id.fileName);
             final AppCompatSpinner c = v.findViewById(R.id.archiveFormat);
             final AppCompatSpinner d = v.findViewById(R.id.compressionLevel);
             final AppCompatSpinner e = v.findViewById(R.id.compressionMethod);
-            final AppCompatEditText g = v.findViewById(R.id.bufferSize);
             if (f.length > 1 && !f[0].isDirectory())
-                c.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, supportedPrimaryArchiveFormats));
+                c.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, LUtil.supportedPrimaryArchiveFormats));
             else
-                c.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, supportedArchiveFormats));
-            d.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, CompressLevel.names()));
-            e.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, CompressMethod.names()));
-            g.setText(String.valueOf(IO.bufferSize));
+                c.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, LUtil.supportedArchiveFormats));
+            d.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, CompressLevel.names()));
+            e.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, new String[]{"Deflated", "Stored", ""}));
+            e.setEnabled(false);
             c.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @SuppressLint("SetTextI18n")
                 @Override
@@ -1406,9 +1427,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     selectedItemIndex = (byte) position;
                     try {
                         if (f.length > 1)
-                            b.setText(Sfx.nonnull(f[0].getParent()).getName() + archiveFormatExtensions[selectedItemIndex]);
+                            b.setText(Sfx.nonnull(f[0].getParent()).getName() + LUtil.archiveFormatExtensions[selectedItemIndex]);
                         else
-                            b.setText(f[0].getName() + archiveFormatExtensions[selectedItemIndex]);
+                            b.setText(f[0].getName() + LUtil.archiveFormatExtensions[selectedItemIndex]);
                     } catch (Exception l) {
                         // ignore
                     }
@@ -1416,21 +1437,18 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         d.setSelection(3);
                         d.setEnabled(true);
                         e.setSelection(0);
-                        e.setEnabled(false);
                     } else if (selectedItemIndex == 1) {
                         d.setSelection(0);
                         d.setEnabled(false);
-                        e.setSelection(0);
-                        e.setEnabled(false);
+                        e.setSelection(1);
                     } else if (selectedItemIndex == 0) {
                         d.setSelection(3);
                         d.setEnabled(false);
-                        e.setEnabled(true);
+                        d.setSelection(0);
                     } else {
                         d.setSelection(3);
                         d.setEnabled(false);
-                        e.setSelection(0);
-                        e.setEnabled(false);
+                        e.setSelection(2);
                     }
                 }
 
@@ -1463,60 +1481,63 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             });
             a.setPositiveButton(R.string.selection_confirm, (dialog, which) -> {
                 final String s = Sfx.nonnull(b.getText()).toString();
-                if (!s.equals("")) {
+                if (s.length() > 0) {
                     this.dialog = ProgressDialog.show(this, getResources().getString(R.string.compress_file_notice), getResources().getString(R.string.please_wait));
                     this.dialog.show();
                     handler.post(() -> {
                         final String h = currentFile.toString() + File.separatorChar + s;
                         try {
-                            IO.bufferSize = Short.parseShort(Sfx.nonnull(g.getText()).toString());
-                            switch (selectedItemIndex) {
-                                case 0: // 7zip
-                                    new SevenZ(h).compress(Filex.toFiles(f));
-                                    break;
-                                case 1: // tar
-                                    new Tar(h).compress(Filex.toFiles(f));
-                                    break;
-                                case 2: // zip
-                                    new Zip(h).compress(Filex.toFiles(f), CompressLevel.init(selectedItemIndex1), CompressMethod.init(selectedItemIndex2));
-                                    break;
-                                case 3: // bzip2
-                                    CompressUtils.compressBz2(f[0].getTarget(), h);
-                                    break;
-                                case 4: // gzip
-                                    CompressUtils.compressGz(f[0].getTarget(), h);
-                                    break;
-                                case 5: // lz4
-                                    CompressUtils.compressLz4(f[0].getTarget(), h);
-                                    break;
-                                case 6: // pack200
-                                    CompressUtils.compressPack200(f[0].getTarget(), h);
-                                    break;
-                                case 7: // snappy
-                                    CompressUtils.compressSnappy(f[0].getTarget(), h);
-                                    break;
-                                case 8: // xz
-                                    CompressUtils.compressXz(f[0].getTarget(), h);
-                                    break;
-                                case 9: // zstd
-                                    CompressUtils.compressZst(f[0].getTarget(), h);
-                                    break;
-                                default:
-                                    throw new IllegalArgumentException("Unsupported type: " + String.valueOf(selectedItemIndex));
+                            if (selectedItemIndex == 0) { // 7zip
+                                final SevenZOutput i = new SevenZOutput(new FileOutputStream(h));
+                                i.compress(new ArchiveEntry[-1]);
+                                i.close();
+                            } else if (selectedItemIndex == 1) { // tar
+                                final TarOutput i = new TarOutput(new FileOutputStream(h));
+                                i.compress(new ArchiveEntry[-1]);
+                                i.close();
+                            } else if (selectedItemIndex == 2) { // zip
+                                final ZipOutput i = new ZipOutput(new FileOutputStream(h));
+                                final ZipEntry[] j = new ZipEntry[f.length];
+                                for (int k = 0; k < j.length; k++) {
+                                    final Filex l = f[k];
+                                    final ZipEntry m = new ZipEntry(l.getPath().replace(currentFile.toString(), ""));
+                                    if (!l.isDirectory())
+                                        m.bindStream(l.getInputStream());
+                                    j[k] = m;
+                                }
+                                i.level = selectedItemIndex1;
+                                i.compress(j);
+                                i.close();
+                            } else if (selectedItemIndex == 3) { // bzip2
+                                CompressUtils.compressBz2(f[0].getInputStream(), new FileOutputStream(h));
+                            } else if (selectedItemIndex == 4) { // gzip
+                                CompressUtils.compressGz(f[0].getInputStream(), new FileOutputStream(h));
+                            } else if (selectedItemIndex == 5) { // lz4
+                                CompressUtils.compressLz4(f[0].getInputStream(), new FileOutputStream(h));
+                            } else if (selectedItemIndex == 6) { // pack200
+                                CompressUtils.compressPack200(f[0].getInputStream(), new FileOutputStream(h));
+                            } else if (selectedItemIndex == 7) { // snappy
+                                CompressUtils.compressSnappy(f[0].getInputStream(), new FileOutputStream(h));
+                            } else if (selectedItemIndex == 8) { // xz
+                                CompressUtils.compressXz(f[0].getInputStream(), new FileOutputStream(h));
+                            } else if (selectedItemIndex == 9) { // zstd
+                                CompressUtils.compressZst(f[0].getInputStream(), new FileOutputStream(h));
+                            } else {
+                                throw new IllegalArgumentException("Unsupported type: " + String.valueOf(selectedItemIndex));
                             }
                         } catch (Exception r) {
-                            E.print(context, r);
+                            E.print(this, r);
                         }
                         handler.sendEmptyMessage(1);
                     });
                 } else
-                    Toast.makeText(context, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
             });
             a.setNegativeButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
             a.setView(v);
             a.show();
         } else
-            Toast.makeText(context, R.string.nothing_selected_message, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.nothing_selected_message, Toast.LENGTH_SHORT).show();
     }
 
     final void initializeStoragePartitionContents() {
@@ -1702,7 +1723,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
 
     @TestOnly
     final void verifyDexFile() throws Exception {
-        final Zip a = new Zip(getPackageManager().getApplicationInfo(packageName, 0).sourceDir);
+        final ZipInput a = new ZipInput(getPackageManager().getApplicationInfo(packageName, 0).sourceDir);
         final Filex b = new Filex(Utils.getTempDir(), UUID.randomUUID().toString());
         a.extract(b.getPath());
         final ArrayList<Filex> c = new ArrayList<>();
@@ -2081,20 +2102,19 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         }
     }
 
-    private static final class LUtils {
-        public static String[] toString(ArchiveType[] types) {
-            final ArrayList<String> a = new ArrayList<>();
-            for (ArchiveType b : types) a.add(ArchiveType.getArchiveName(b));
-            return a.toArray(new String[0]);
+    private static final class LUtil {
+        private static final String[] supportedArchiveFormats = a(ArchiveType.AC, false);
+        private static final String[] supportedPrimaryArchiveFormats = a(ArchiveType.SC, false);
+        private static final String[] archiveFormatExtensions = a(ArchiveType.AC, true);
+
+        private static String[] a(ArchiveType[] a, boolean b) {
+            final String[] c = new String[a.length];
+            for (int i = 0; i < c.length; i++)
+                c[i] = b ? a[i].extension : a[i].name;
+            return c;
         }
 
-        public static String[] toString(ArchiveType[] a, byte b) {
-            if (b == 0) return toString(a);
-            else {
-                final ArrayList<String> c = new ArrayList<>();
-                for (ArchiveType d : a) c.add(ArchiveType.getArchiveExtension(d));
-                return c.toArray(new String[0]);
-            }
+        private LUtil() {
         }
     }
 }

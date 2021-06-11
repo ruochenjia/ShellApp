@@ -69,16 +69,6 @@
         android:name="android.hardware.sensor.compass"
         android:required="false" />
 
-    <supports-screens
-        android:anyDensity="true"
-        android:compatibleWidthLimitDp="420"
-        android:largeScreens="true"
-        android:largestWidthLimitDp="720"
-        android:normalScreens="false"
-        android:requiresSmallestWidthDp="420"
-        android:resizeable="true"
-        android:smallScreens="false"
-        android:xlargeScreens="true" />
     <application
         android:name="shell.app.Application"
         android:allowBackup="false"
@@ -87,7 +77,7 @@
         android:icon="@mipmap/app_icon"
         android:killAfterRestore="false"
         android:label="@string/app_name"
-        android:manageSpaceActivity="android.app.Activity"
+        android:manageSpaceActivity="app.Activity"
         android:persistent="true"
         android:persistentWhenFeatureAvailable="true"
         android:requestLegacyExternalStorage="true"

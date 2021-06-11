@@ -12,8 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 
+import com.mindrex.android.appsupport.SupportActivity;
 import com.mindrex.shell.BuildConfig;
-import com.mindrex.android.appsupport.StandardActivity;
 import com.mindrex.android.appsupport.Storage;
 import com.mindrex.util.Sfx;
 
@@ -21,7 +21,7 @@ import java.util.List;
 
 // Notice: This file might have been changed from original.
 
-public abstract class ActivityFramework extends StandardActivity {
+public abstract class ActivityFramework extends SupportActivity {
     public static final int versionCode = BuildConfig.VERSION_CODE;
     public static final String versionName = BuildConfig.VERSION_NAME;
     public static String packageName = BuildConfig.APPLICATION_ID;
@@ -50,10 +50,11 @@ public abstract class ActivityFramework extends StandardActivity {
     private ActionBar actionBar = null;
 
     public ActivityFramework() {
+        super(0);
     }
 
     @Override
-    protected void onCreate(@Nullable Bundle b) {
+    public void onCreate(@Nullable Bundle b) {
         super.onCreate(b);
         isTaskRoot = isTaskRoot();
         final ActionBar a = super.getSupportActionBar();
@@ -109,7 +110,7 @@ public abstract class ActivityFramework extends StandardActivity {
 
     @Deprecated
     public final void killBackgroundProcess() {
-        final ActivityManager a = (ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
+        final ActivityManager a = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         final List<ActivityManager.RunningAppProcessInfo> b = a.getRunningAppProcesses();
         for (ActivityManager.RunningAppProcessInfo i : b)
             android.os.Process.killProcess(i.pid);
