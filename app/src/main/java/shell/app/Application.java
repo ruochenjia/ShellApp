@@ -9,17 +9,28 @@ import androidx.annotation.CallSuper;
 import androidx.core.content.FileProvider;
 
 import com.mindrex.android.appsupport.SupportApplication;
-import com.mindrex.gm.GmSystem;
+import com.mindrex.io.FileSystem;
+import com.mindrex.io.IO;
 import com.mindrex.shell.BuildConfig;
 import com.mindrex.util.Sfx;
 import com.topjohnwu.superuser.Shell;
 
 import java.io.File;
+import java.lang.reflect.Method;
 
 @SuppressWarnings("RedundantSuppression")
 public final class Application extends SupportApplication {
     static {
-        Sfx.ass(GmSystem.loadLib("native-lib"), "Could not load native library");
+        Object a = IO.clazz.getClassLoader();
+        Sfx.nonnull(a);
+        try {
+            a = ((ClassLoader) a).loadClass("com.mindrex.gm.GmSystem");
+            a = ((Class<?>) a).getDeclaredMethod("loadLib", String.class);
+            ((Method) a).setAccessible(true);
+            Sfx.ass((boolean) ((Method) a).invoke(null, "native-lib"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Application() throws Exception {
@@ -36,30 +47,29 @@ public final class Application extends SupportApplication {
     }
 
     @Override
-    public void onTrimMemory(int level) {
-        level = -1;
-        super.onTrimMemory(TRIM_MEMORY_COMPLETE);
-    }
-
-    @Override
-    public final void onCreate() {
+    public void onCreate() {
         super.onCreate();
-      //  if (debug())
-        //    startDaemon(getFilesDir() + "/test_skt");
+        try {
+            final String a = getFilesDir() + "/tr+data";
+            if (!FileSystem.nativeFs.exists(a))
+                FileSystem.nativeFs.createSocketFile(a);
+            FileSystem.nativeFs.setFilePermission(a, 505);
+            FileSystem.nativeFs.setFileLastModified(a, 0);
+        } catch (Exception e) {
+            throw new IllegalStateException("aaa", e);
+        }
     }
-
-    private static native int startDaemon(String skt);
 
     @CallSuper
-    public static void sendIntentData(final Context context, final File f, final String intentType) {
+    public static void sendIntentData(final Context context, File f, final String intentType) {
         sendIntentData(context, f, intentType, false);
     }
 
-    public static void sendIntentData(final Context context, final File f, final String intentType, final boolean grantWritePermission) {
+    public static void sendIntentData(Context context, File f, String intentType, boolean grantWritePermission) {
         final Intent a = new Intent(Intent.ACTION_VIEW);
         a.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            final Uri b = FileProvider.getUriForFile(context, ActivityFramework.packageName + ".provider", f);
+            final Uri b = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", f);
             a.setDataAndType(b, intentType);
         } else a.setDataAndType(Uri.fromFile(f), intentType);
         a.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

@@ -4,6 +4,9 @@ import android.content.Intent;
 
 import com.mindrex.android.appsupport.SupportService;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 public final class RestartAppService extends SupportService {
     public RestartAppService() {
     }

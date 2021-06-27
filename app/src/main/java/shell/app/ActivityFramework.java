@@ -12,21 +12,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 
-import com.mindrex.android.appsupport.SupportActivity;
-import com.mindrex.shell.BuildConfig;
 import com.mindrex.android.appsupport.Storage;
+import com.mindrex.android.appsupport.SupportActivity;
 import com.mindrex.util.Sfx;
-
-import java.util.List;
 
 // Notice: This file might have been changed from original.
 
 public abstract class ActivityFramework extends SupportActivity {
-    public static final int versionCode = BuildConfig.VERSION_CODE;
-    public static final String versionName = BuildConfig.VERSION_NAME;
-    public static String packageName = BuildConfig.APPLICATION_ID;
-    public static String appName;
-
     public static final String storagePath;
     public static final String externalSdPath;
     public static final String rootDirectory;
@@ -111,8 +103,7 @@ public abstract class ActivityFramework extends SupportActivity {
     @Deprecated
     public final void killBackgroundProcess() {
         final ActivityManager a = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        final List<ActivityManager.RunningAppProcessInfo> b = a.getRunningAppProcesses();
-        for (ActivityManager.RunningAppProcessInfo i : b)
+        for (ActivityManager.RunningAppProcessInfo i : a.getRunningAppProcesses())
             android.os.Process.killProcess(i.pid);
     }
 }

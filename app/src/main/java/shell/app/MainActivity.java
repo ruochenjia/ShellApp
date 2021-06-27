@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -19,10 +18,7 @@ import android.os.Message;
 import android.os.StatFs;
 import android.text.Editable;
 import android.text.InputType;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,14 +31,12 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.AppCompatEditText;
@@ -50,7 +44,6 @@ import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.AppCompatRadioButton;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.AppCompatTextView;
-import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -58,18 +51,24 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.navigation.NavigationView;
+import com.mindrex.android.SignJar;
+import com.mindrex.android.appsupport.AlertDialog;
 import com.mindrex.android.appsupport.ArchiveType;
 import com.mindrex.android.appsupport.Color;
 import com.mindrex.android.appsupport.CommandUtils;
+import com.mindrex.android.appsupport.DialogButton;
 import com.mindrex.android.appsupport.E;
 import com.mindrex.android.appsupport.Filex;
-import com.mindrex.android.appsupport.htmlviewer.HtmlViewer;
 import com.mindrex.android.appsupport.LinearLayout;
+import com.mindrex.android.appsupport.SelectDialog;
+import com.mindrex.android.appsupport.SelectDialogItem;
 import com.mindrex.android.appsupport.Thumbnail;
 import com.mindrex.android.appsupport.Utils;
+import com.mindrex.android.appsupport.htmlviewer.HtmlViewer;
 import com.mindrex.android.debugger.Log;
 import com.mindrex.annotation.TestOnly;
 import com.mindrex.data.Array;
+import com.mindrex.gm.GmRuntime;
 import com.mindrex.gm.GmSystem;
 import com.mindrex.io.ArchiveEntry;
 import com.mindrex.io.ArchiveInput;
@@ -88,8 +87,6 @@ import com.mindrex.io.ZipInput;
 import com.mindrex.io.ZipOutput;
 import com.mindrex.shell.R;
 import com.mindrex.util.Sfx;
-import com.mindrex.util.SignJar;
-import com.topjohnwu.superuser.Shell;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -100,7 +97,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -124,11 +120,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
 
     private final StringHolder currentFile = new StringHolder();
     private boolean[] selection;
-    private List<Filex> fileList;
+    private Filex[] fileList;
     private List<String> origins;
-    private int fileCount, folderCount;
     private int selectedCount = 0;
-    private String[] moreItemContextMenu0, moreItemContextMenu1, moreItemContextMenu2, moreItemContextMenu3;
 
     private View storagePartitionInternal, storagePartitionExternal, storagePartitionRoot, storagePartitionData, storagePartitionCache, storagePartitionSystem;
     private ProgressBar storagePartitionInternalProgressBar, storagePartitionExternalProgressBar, storagePartitionRootProgressBar, storagePartitionDataProgressBar, storagePartitionCacheProgressBar, storagePartitionSystemProgressBar;
@@ -147,25 +141,29 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     private byte selectedItemIndex1 = 0;
     private byte selectedItemIndex2 = 0;
 
-    private final java.lang.Runnable setupContentData = new java.lang.Runnable() {
+    private final Runnable setupContentData = new Runnable() {
         @Override
         public final void run() {
-            fileList.clear();
             final Filex v = new Filex(currentFile.toString());
             if (new File(v.getPath()).canRead() || CommandUtils.hasRootAccess) {
-                final Filex[] a = v.list();
-                if (a.length > 0)
-                    fileList.addAll(new Array<>(a));
-            } else RootRequiredDialog.show(MainActivity.this);
-            if (reverseOrder) Collections.sort(fileList, Collections.reverseOrder());
-            else Collections.sort(fileList);
-            FileData[] a = new FileData[0];
-            for (Filex f : fileList) {
+                fileList = v.list();
+            } else {
+                RootRequiredDialog.show(MainActivity.this);
+                fileList = new Filex[0];
+            }
+            if (reverseOrder) Arrays.sort(fileList, Collections.reverseOrder());
+            else Arrays.sort(fileList);
+            final FileData[] a = new FileData[fileList.length];
+            int folderCount = 0;
+            int fileCount = 0;
+            for (int i = 0; i < fileList.length; i++) {
                 final FileData b = new FileData();
+                final Filex f = fileList[i];
                 b.name = f.getName();
                 if (f.isDirectory()) {
                     b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.folder);
-                    b.description = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.ROOT).format(f.lastModified());
+                    b.description = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", GmRuntime.locale).format(f.lastModified());
+                    folderCount++;
                 } else {
                     switch (FileExtension.CheckFileExtension(f)) {
                         case IMAGE:
@@ -214,13 +212,13 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                             b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.file_unknown);
                             break;
                     }
-                    b.description = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.ROOT).format(f.lastModified()) + " " + new FileSizeTransform(f.size()).getFinalFileSize();
+                    b.description = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", GmRuntime.locale).format(f.lastModified()) + " " + new FileSizeTransform(f.size()).getFinalFileSize();
+                    fileCount++;
                 }
-                a = Array.append(a, b);
+                a[i] = b;
             }
-            selection = new boolean[fileList.size()];
+            selection = new boolean[fileList.length];
             adaptor.setData(a);
-            getFileCount(fileList);
             final MemoryStatus b = new MemoryStatus(currentFile.toString());
             actionBar.setSubtitle(getResources().getString(R.string.current_directory_info)
                     .replace("$file_count", String.valueOf(fileCount))
@@ -230,7 +228,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             backButton.setEnabled(true);
         }
     };
-    private final java.lang.Runnable copyFile = new java.lang.Runnable() {
+    private final Runnable copyFile = new Runnable() {
         @Override
         public final void run() {
             if (origins.size() > 0) {
@@ -279,7 +277,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         super.onCreate(savedInstanceState);
         setContentView(R.layout.file_manager);
 
-        final AlertDialog.Builder a = new AlertDialog.Builder(this);
+        final AlertDialog a = new AlertDialog(this);
         a.setTitle("Title");
         a.setMessage("Message");
         a.setView(new HtmlViewer(this, null));
@@ -353,35 +351,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         actionBar = getSupportActionBar();
 
         currentFile.setValue(storagePath);
-
-        moreItemContextMenu0 = new String[]{
-                getResources().getString(R.string.open_with),
-                getResources().getString(R.string.move),
-                getResources().getString(R.string.rename),
-                getResources().getString(R.string.compress),
-                getResources().getString(R.string.share),
-                getResources().getString(R.string.properties)
-        };
-        moreItemContextMenu1 = new String[]{
-                getResources().getString(R.string.move),
-                getResources().getString(R.string.rename),
-                getResources().getString(R.string.compress),
-                getResources().getString(R.string.properties)
-        };
-        moreItemContextMenu2 = new String[]{
-                getResources().getString(R.string.open_with),
-                getResources().getString(R.string.move),
-                getResources().getString(R.string.rename),
-                getResources().getString(R.string.compress),
-                getResources().getString(R.string.share),
-                getResources().getString(R.string.properties),
-                getResources().getString(R.string.sign)
-        };
-        moreItemContextMenu3 = new String[]{
-                getResources().getString(R.string.move),
-                getResources().getString(R.string.compress),
-                getResources().getString(R.string.properties)
-        };
     }
 
     @Override
@@ -476,7 +445,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     public final boolean onOptionsItemSelected(@NonNull MenuItem item) {
         final int i = item.getItemId();
         if (i == R.id.sortBy) {
-            final AlertDialog.Builder a = new AlertDialog.Builder(this);
+            final AlertDialog a = new AlertDialog(this);
             a.setTitle(R.string.sort_by);
             final RadioGroup b = new RadioGroup(this);
             b.setOrientation(RadioGroup.VERTICAL);
@@ -495,17 +464,17 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             final AppCompatCheckBox f = new AppCompatCheckBox(this);
             f.setText(R.string.reverse_order);
             b.addView(f, 3, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            if (Filex.sortingRule == 0) b.check(R.id.a);
-            else if (Filex.sortingRule == 1) b.check(R.id.b);
-            else if (Filex.sortingRule == 3) b.check(R.id.c);
+            if (Filex.sortingRule == Filex.SORT_BY_NAME) b.check(R.id.a);
+            else if (Filex.sortingRule == Filex.SORT_BY_MODIFIED_TIME) b.check(R.id.b);
+            else if (Filex.sortingRule == Filex.SORT_BY_SIZE) b.check(R.id.c);
             else b.check(R.id.a);
             f.setChecked(reverseOrder);
             a.setView(b);
             a.setPositiveButton(R.string.selection_confirm, (dialog, which) -> {
                 final int r = b.getCheckedRadioButtonId();
-                if (r == R.id.b) Filex.sortingRule = 1;
-                else if (r == R.id.c) Filex.sortingRule = 2;
-                else Filex.sortingRule = 0;
+                if (r == R.id.b) Filex.sortingRule = Filex.SORT_BY_SIZE;
+                else if (r == R.id.c) Filex.sortingRule = Filex.SORT_BY_MODIFIED_TIME;
+                else Filex.sortingRule = Filex.SORT_BY_NAME;
                 reverseOrder = f.isChecked();
                 refreshContent();
             });
@@ -517,94 +486,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show();
             return true;
         } else if (i == R.id.command) {
-            final AlertDialog.Builder a = new AlertDialog.Builder(this);
-            a.setTitle(R.string.execute_command);
-            final LinearLayout b = new LinearLayout(this);
-            b.setOrientation(LinearLayoutCompat.VERTICAL);
-            final AppCompatTextView c = new AppCompatTextView(this, null, 0) {
-                @Override
-                public final boolean getFreezesText() {
-                    return true;
-                }
 
-                @Override
-                public final boolean getDefaultEditable() {
-                    return true;
-                }
-
-                @Override
-                public void setText(CharSequence text, BufferType type) {
-                    type = BufferType.EDITABLE;
-                    super.setText(text, type);
-                }
-
-                @Override
-                public final Editable getText() {
-                    final CharSequence a = super.getText();
-                    if (a instanceof Editable) return (Editable) a;
-                    else return new SpannableStringBuilder(a);
-                }
-
-                @Override
-                public final String toString() {
-                    return getText().toString();
-                }
-            };
-            c.setClickable(true);
-            c.setTextIsSelectable(true);
-            c.setText(new String(new byte[]{71, 8, -89}), TextView.BufferType.EDITABLE);
-            c.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-            c.setTypeface(Typeface.create("monospace", Typeface.NORMAL));
-            b.addView(c, 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Utils.dpToPixel(100)));
-            final AppCompatTextView d = new AppCompatTextView(this, null, 0) {
-                @Override
-                public final void setText(CharSequence text, BufferType type) {
-                    type = BufferType.SPANNABLE;
-                    super.setText(text, type);
-                }
-
-                @Override
-                public final Spannable getText() {
-                    final CharSequence a = super.getText();
-                    if (a instanceof Spannable) return (Spannable) a;
-                    else return new SpannableStringBuilder(a);
-                }
-
-                @Override
-                public final String toString() {
-                    return getText().toString();
-                }
-            };
-            d.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-            d.setTypeface(Typeface.create("monospace", Typeface.NORMAL));
-            d.setBackgroundColor(getResources().getColor(R.color.widget_background));
-            b.addView(d, 1, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Utils.dpToPixel(100)));
-            a.setView(b);
-            a.setPositiveButton(R.string.execute, (dialog, which) -> {
-            });
-            a.setNegativeButton(R.string.close, (dialog, which) -> dialog.dismiss());
-            final AlertDialog dialog = a.create();
-            dialog.show();
-            dialog.getButton(dialog.BUTTON_POSITIVE).setOnClickListener(view -> {
-                try {
-                    String e = c.toString();
-                    String[] f = new String[0];
-                    int r;
-                    while ((r = e.indexOf("\n")) >= 0) {
-                        f = Array.append(f, e.substring(0, r));
-                        e = e.substring(r);
-                    }
-                    Shell.Result g = Shell.sh(f).exec();
-                    final StringBuilder j = new StringBuilder();
-                    for (String h : g.getErr())
-                        j.append(h).append("\n");
-                    for (String h : g.getOut())
-                        j.append(h).append("\n");
-                    d.setText(j);
-                } catch (Exception e) {
-                    E.print(e);
-                }
-            });
             return true;
         } else if (toggle.onOptionsItemSelected(item))
             return true;
@@ -632,7 +514,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     public final void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (selectedCount == 0)
             try {
-                Filex f = new Filex(fileList.get(position));
+                Filex f = new Filex(fileList[position]);
                 if (f.isDirectory()) {
                     currentFile.setValue(f.getPath());
                     refreshContent();
@@ -660,7 +542,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                 this.getResources().getString(R.string.extract_to_path)
                         };
                         final String s = xf.getName();
-                        final AlertDialog.Builder b = new AlertDialog.Builder(this);
+                        final AlertDialog b = new AlertDialog(this);
                         b.setTitle(s);
                         b.setPositiveButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
                         if (xf.getExtension().equals(".7z")) {
@@ -839,7 +721,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     } else if (fileExtension == FileExtension.APK) {
                         Application.sendIntentData(this, xf.getTarget(), "application/vnd.android.package-archive");
                     } else if (fileExtension == FileExtension.COMPRESSED) {
-                        final AlertDialog.Builder d = new AlertDialog.Builder(this);
+                        final AlertDialog d = new AlertDialog(this);
                         final String s = xf.getName();
                         d.setTitle(s);
                         d.setMessage(R.string.extract_file_confirm_message);
@@ -914,7 +796,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         Log.c(e);
     }
 
-    @SuppressLint("SetTextI18n")
     final void refreshContent() {
         swipeRefreshLayout.setRefreshing(true);
         try {
@@ -935,21 +816,11 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         swipeRefreshLayout.setRefreshing(false);
     }
 
-    final void getFileCount(List<Filex> l) {
-        fileCount = 0;
-        folderCount = 0;
-        for (Filex f : l) {
-            if (f.isDirectory()) folderCount++;
-            else if (f.isFile()) fileCount++;
-        }
-    }
-
     private Object tmp;
 
     @SuppressWarnings("EqualsBetweenInconvertibleTypes")
     @SuppressLint("NonConstantResourceId")
     final void initializeFileManager() {
-        fileList = new ArrayList<>();
         origins = new ArrayList<>();
         adaptor = new FileAdaptor();
         handler.post(setupContentData);
@@ -962,7 +833,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             refreshContent();
         });
         createButton.setOnClickListener(view -> {
-            final AlertDialog.Builder a = new AlertDialog.Builder(this);
+            final AlertDialog a = new AlertDialog(this);
             a.setTitle(R.string.create);
             final AppCompatEditText b = new AppCompatEditText(this);
             b.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
@@ -1046,7 +917,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         });
         copyFileButton.setOnClickListener(view -> {
             for (int i = 0; i < selection.length; i++) {
-                if (selection[i]) origins.add(fileList.get(i).getPath());
+                if (selection[i]) origins.add(fileList[i].getPath());
             }
             cancelButton.callOnClick();
             mainNavigationBar.setVisibility(View.GONE);
@@ -1055,7 +926,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             extractingFile = false;
         });
         deleteFileButton.setOnClickListener(view -> {
-            final AlertDialog.Builder a = new AlertDialog.Builder(this);
+            final AlertDialog a = new AlertDialog(this);
             a.setTitle(R.string.delete);
             a.setMessage(R.string.delete_file_confirm_message);
             a.setPositiveButton(R.string.selection_confirm, (_dialog, which) -> {
@@ -1064,7 +935,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 handler.post(() -> {
                     for (int i = 0; i < selection.length; i++) {
                         if (selection[i]) {
-                            final Filex f = fileList.get(i);
+                            final Filex f = fileList[i];
                             try {
                                 f.delete();
                             } catch (Exception e) {
@@ -1079,233 +950,285 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             a.show();
         });
         moreItemButton.setOnClickListener(view -> {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            final AlertDialog.Builder a = new AlertDialog.Builder(this);
-            builder.setNegativeButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
             if (selectedCount == 1) {
                 for (int i = 0; i < selection.length; i++) {
                     if (selection[i]) {
-                        tmp = fileList.get(i);
+                        tmp = fileList[i];
                         break;
                     }
                 }
                 final Filex f = (Filex) Sfx.nonnull(tmp);
                 if (f.isDirectory()) {
-                    builder.setItems(moreItemContextMenu1, (dialog, which) -> {
-                        switch (which) {
-                            case 0: // move
-                                for (int i = 0; i < selection.length; i++) {
-                                    if (selection[i]) origins.add(fileList.get(i).getPath());
-                                }
-                                cancelButton.callOnClick();
-                                mainNavigationBar.setVisibility(View.GONE);
-                                copyFileNavigationBar.setVisibility(View.VISIBLE);
-                                movingFile = true;
-                                break;
-                            case 1: // rename
-                                a.setTitle(R.string.rename);
-                                final AppCompatEditText b = new AppCompatEditText(this);
-                                b.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-                                b.setHint(R.string.file_name);
-                                b.setText(f.getName());
-                                a.setView(b);
-                                a.setPositiveButton(R.string.selection_confirm, (c, d) -> {
-                                    if (b.getText() != null) {
-                                        final String s = b.getText().toString();
-                                        if (!s.equals("")) {
+                    SelectDialog.show(this, null, new SelectDialogItem[]{
+                            new SelectDialogItem(
+                                    getResources().getString(R.string.move),
+                                    null,
+                                    ContextCompat.getDrawable(this, R.drawable.move),
+                                    a -> {
+                                        for (int i = 0; i < selection.length; i++)
+                                            if (selection[i]) origins.add(fileList[i].getPath());
+                                        cancelButton.callOnClick();
+                                        mainNavigationBar.setVisibility(View.GONE);
+                                        copyFileNavigationBar.setVisibility(View.VISIBLE);
+                                        movingFile = true;
+                                    }
+                            ),
+                            new SelectDialogItem(
+                                    getResources().getString(R.string.rename),
+                                    null,
+                                    ContextCompat.getDrawable(this, R.drawable.rename),
+                                    a -> {
+                                        final AlertDialog b = new AlertDialog(this);
+                                        b.setTitle(R.string.rename);
+                                        final AppCompatEditText c = new AppCompatEditText(this);
+                                        c.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+                                        c.setHint(R.string.file_name);
+                                        c.setText(f.getName());
+                                        b.setView(c);
+                                        b.setButtons(new DialogButton(DialogButton.POSITIVE,
+                                                getResources().getString(R.string.selection_confirm),
+                                                d -> {
+                                                    CharSequence s = c.getText();
+                                                    if (s != null) {
+                                                        if (s.length() > 0) {
+                                                            try {
+                                                                f.moveTo(new Filex(currentFile.toString(), s.toString()));
+                                                            } catch (Exception e) {
+                                                                E.print(this, e);
+                                                            }
+                                                            handler.postDelayed(this::refreshContent, 200);
+                                                        } else
+                                                            Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                                    } else
+                                                        Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                                }
+                                        ), AlertDialog.cancelButton);
+                                        b.show();
+                                    }
+                            ),
+                            new SelectDialogItem(
+                                    getResources().getString(R.string.compress),
+                                    null,
+                                    ContextCompat.getDrawable(this, R.drawable.compress),
+                                    a -> showCompressDialog(f)
+                            ),
+                            new SelectDialogItem(
+                                    getResources().getString(R.string.properties),
+                                    null,
+                                    ContextCompat.getDrawable(this, R.drawable.properties),
+                                    a -> showPropertyDialog(f)
+                            )
+                    }, AlertDialog.cancelButton);
+                } else {
+                    final FileExtension g = FileExtension.CheckFileExtension(f);
+                    if (g == FileExtension.ZIP_ARCHIVE || g == FileExtension.APK) {
+                        SelectDialog.show(this, null, new SelectDialogItem[]{
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.open_with),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.open_with),
+                                        a -> Application.sendIntentData(this, f.getTarget(), "*/*")
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.move),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.move),
+                                        a -> {
+                                            for (int l = 0; l < selection.length; l++)
+                                                if (selection[l])
+                                                    origins.add(fileList[l].getPath());
+                                            cancelButton.callOnClick();
+                                            mainNavigationBar.setVisibility(View.GONE);
+                                            copyFileNavigationBar.setVisibility(View.VISIBLE);
+                                            movingFile = true;
+                                            extractingFile = false;
+                                        }
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.rename),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.rename),
+                                        a -> {
+                                            final AlertDialog b = new AlertDialog(this);
+                                            b.setTitle(R.string.rename);
+                                            final AppCompatEditText c = new AppCompatEditText(this);
+                                            c.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+                                            c.setHint(R.string.file_name);
+                                            c.setText(f.getName());
+                                            b.setView(c);
+                                            b.setButtons(new DialogButton(DialogButton.POSITIVE,
+                                                    getResources().getString(R.string.selection_confirm),
+                                                    d -> {
+                                                        CharSequence s = c.getText();
+                                                        if (s != null) {
+                                                            if (s.length() > 0) {
+                                                                try {
+                                                                    f.moveTo(new Filex(currentFile.toString(), s.toString()));
+                                                                } catch (Exception e) {
+                                                                    E.print(this, e);
+                                                                }
+                                                                handler.postDelayed(this::refreshContent, 200);
+                                                            } else
+                                                                Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                                        } else
+                                                            Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                                    }
+                                            ), AlertDialog.cancelButton);
+                                            b.show();
+                                        }
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.compress),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.compress),
+                                        a -> showCompressDialog(f)
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.share),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.share),
+                                        a -> {
+                                            final Intent i = new Intent();
+                                            i.setAction(Intent.ACTION_SEND);
+                                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            i.setDataAndType(FileProvider.getUriForFile(this, getPackageName() + ".provider", f.getTarget()), "*/*");
+                                            startActivity(Intent.createChooser(i, f.getName()));
+                                        }
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.properties),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.properties),
+                                        a -> showPropertyDialog(f)
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.sign),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.sign),
+                                        a -> {
                                             try {
-                                                f.moveTo(new Filex(currentFile.toString(), b.getText().toString()));
+                                                new SignJar(f.getPath(), f.removeExtension().getPath() + "_signed" + f.getExtension(), "null", KeyUtils.loadPrivateKey(null), KeyUtils.generateCertificate(null))
+                                                        .setCreatedBy("JarSigner")
+                                                        .setMinSdkVersion(16)
+                                                        .setSignatureScheme("V3")
+                                                        .sign();
                                             } catch (Exception e) {
                                                 E.print(this, e);
                                             }
-                                            handler.postDelayed(this::refreshContent, 200);
-                                        } else
-                                            Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
-                                    } else
-                                        Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
-                                });
-                                a.setNegativeButton(R.string.selection_cancel, (c, d) -> c.cancel());
-                                a.show();
-                                break;
-                            case 2: // compress
-                                showCompressDialog(new Filex[]{f});
-                                break;
-                            case 3: // properties
-                                // properties
-                                break;
-                            default:
-                                // throw new IllegalArgumentException();
-                                break;
-                        }
-                    });
-                } else {
-                    final FileExtension g = FileExtension.CheckFileExtension(f);
-                    final Intent i = new Intent();
-                    if (g == FileExtension.ZIP_ARCHIVE || g == FileExtension.APK) {
-                        builder.setItems(moreItemContextMenu2, (dialog, which) -> {
-                            switch (which) {
-                                case 0: // open with
-                                    Application.sendIntentData(this, f.getTarget(), "*/*");
-                                    break;
-                                case 1: // move
-                                    for (int l = 0; l < selection.length; l++) {
-                                        if (selection[l]) origins.add(fileList.get(l).getPath());
-                                    }
-                                    cancelButton.callOnClick();
-                                    mainNavigationBar.setVisibility(View.GONE);
-                                    copyFileNavigationBar.setVisibility(View.VISIBLE);
-                                    movingFile = true;
-                                    extractingFile = false;
-                                    break;
-                                case 2: // rename
-                                    a.setTitle(R.string.rename);
-                                    final AppCompatEditText b = new AppCompatEditText(this);
-                                    b.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-                                    b.setHint(R.string.file_name);
-                                    b.setText(f.getName());
-                                    a.setView(b);
-                                    a.setPositiveButton(R.string.selection_confirm, (c, d) -> {
-                                        if (b.getText() != null) {
-                                            final String s = b.getText().toString();
-                                            if (!s.equals("")) {
-                                                try {
-                                                    f.moveTo(new Filex(currentFile.toString(), b.getText().toString()));
-                                                } catch (Exception e) {
-                                                    E.print(this, e);
-                                                }
-                                                handler.postDelayed(this::refreshContent, 200);
-                                            } else
-                                                Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
-                                        } else
-                                            Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
-                                    });
-                                    a.setNegativeButton(R.string.selection_cancel, (c, d) -> c.cancel());
-                                    a.show();
-                                    break;
-                                case 3: // compress
-                                    showCompressDialog(new Filex[]{f});
-                                    break;
-                                case 4: // share
-                                    i.setAction(Intent.ACTION_SEND);
-                                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    i.setData(FileProvider.getUriForFile(this, packageName + ".provider", f.getTarget()));
-                                    i.setType("*/*");
-                                    startActivity(Intent.createChooser(i, f.getName()));
-                                    break;
-                                case 5: // properties
-                                    // properties
-                                    break;
-                                case 6: // sign
-                                    try {
-                                        final String r = f.removeExtension().getPath() + "_signed" + f.getExtension();
-                                        new SignJar(f.getPath(), r, "null", KeyUtils.loadPrivateKey(null), KeyUtils.generateCertificate(null))
-                                                .setCreatedBy("JarSigner")
-                                                .setMinSdkVersion(16)
-                                                .setSignatureScheme("V1")
-                                                .sign();
-                                    } catch (Exception e) {
-                                        E.print(e);
-                                    }
-                                    refreshContent();
-                                    break;
-                                case 7:
-                                    throw null;
-                                default:
-                                    // throw new IllegalArgumentException();
-                                    break;
-                            }
-                        });
+                                            refreshContent();
+                                        }
+                                )
+                        }, AlertDialog.cancelButton);
                     } else {
-                        builder.setItems(moreItemContextMenu0, (dialog, which) -> {
-                            switch (which) {
-                                case 0: // open with
-                                    Application.sendIntentData(this, f.getTarget(), "*/*");
-                                    break;
-                                case 1: // move
-                                    for (int l = 0; l < selection.length; l++) {
-                                        if (selection[l]) origins.add(fileList.get(l).getPath());
-                                    }
-                                    cancelButton.callOnClick();
-                                    mainNavigationBar.setVisibility(View.GONE);
-                                    copyFileNavigationBar.setVisibility(View.VISIBLE);
-                                    movingFile = true;
-                                    extractingFile = false;
-                                    break;
-                                case 2: // rename
-                                    a.setTitle(R.string.rename);
-                                    final AppCompatEditText b = new AppCompatEditText(this);
-                                    b.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-                                    b.setHint(R.string.file_name);
-                                    b.setText(f.getName());
-                                    a.setView(b);
-                                    a.setPositiveButton(R.string.selection_confirm, (c, d) -> {
-                                        if (b.getText() != null) {
-                                            final String s = b.getText().toString();
-                                            if (!s.equals("")) {
-                                                try {
-                                                    f.moveTo(new Filex(currentFile.toString(), b.getText().toString()));
-                                                } catch (Exception e) {
-                                                    E.print(this, e);
-                                                }
-                                                handler.postDelayed(this::refreshContent, 200);
-                                            } else
-                                                Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
-                                        } else
-                                            Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
-                                    });
-                                    a.setNegativeButton(R.string.selection_cancel, (c, d) -> c.cancel());
-                                    a.show();
-                                    break;
-                                case 3: // compress
-                                    showCompressDialog(new Filex[]{f});
-                                    break;
-                                case 4: // share
-                                    i.setAction(Intent.ACTION_SEND);
-                                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    i.setData(FileProvider.getUriForFile(this, packageName + ".provider", f.getTarget()));
-                                    i.setType("*/*");
-                                    startActivity(Intent.createChooser(i, f.getName()));
-                                    break;
-                                case 5: // properties
-                                    // properties
-                                    break;
-                                default:
-                                    // throw new IllegalArgumentException();
-                                    break;
-                            }
-                        });
+                        SelectDialog.show(this, null, new SelectDialogItem[]{
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.open_with),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.open_with),
+                                        a -> Application.sendIntentData(this, f.getTarget(), "*/*")
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.move),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.move),
+                                        a -> {
+                                            for (int l = 0; l < selection.length; l++)
+                                                if (selection[l])
+                                                    origins.add(fileList[l].getPath());
+                                            cancelButton.callOnClick();
+                                            mainNavigationBar.setVisibility(View.GONE);
+                                            copyFileNavigationBar.setVisibility(View.VISIBLE);
+                                            movingFile = true;
+                                            extractingFile = false;
+                                        }
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.rename),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.rename),
+                                        a -> {
+                                            final AlertDialog b = new AlertDialog(this);
+                                            b.setTitle(R.string.rename);
+                                            final AppCompatEditText c = new AppCompatEditText(this);
+                                            c.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+                                            c.setHint(R.string.file_name);
+                                            c.setText(f.getName());
+                                            b.setView(c);
+                                            b.setButtons(new DialogButton(DialogButton.POSITIVE,
+                                                    getResources().getString(R.string.selection_confirm),
+                                                    d -> {
+                                                        CharSequence s = c.getText();
+                                                        if (s != null) {
+                                                            if (s.length() > 0) {
+                                                                try {
+                                                                    f.moveTo(new Filex(currentFile.toString(), s.toString()));
+                                                                } catch (Exception e) {
+                                                                    E.print(this, e);
+                                                                }
+                                                                handler.postDelayed(this::refreshContent, 200);
+                                                            } else
+                                                                Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                                        } else
+                                                            Toast.makeText(this, R.string.file_name_empty_message, Toast.LENGTH_SHORT).show();
+                                                    }
+                                            ), AlertDialog.cancelButton);
+                                            b.show();
+                                        }
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.compress),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.compress),
+                                        a -> showCompressDialog(f)
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.share),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.share),
+                                        a -> {
+                                            final Intent i = new Intent();
+                                            i.setAction(Intent.ACTION_SEND);
+                                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            i.setDataAndType(FileProvider.getUriForFile(this, getPackageName() + ".provider", f.getTarget()), "*/*");
+                                            startActivity(Intent.createChooser(i, f.getName()));
+                                        }
+                                ),
+                                new SelectDialogItem(
+                                        getResources().getString(R.string.properties),
+                                        null,
+                                        ContextCompat.getDrawable(this, R.drawable.properties),
+                                        a -> showPropertyDialog(f)
+                                )
+                        }, AlertDialog.cancelButton);
                     }
                 }
-                builder.show();
             } else {
                 final Filex[] f = new Filex[selection.length];
-                for (int i = 0; i < f.length; i++) {
-                    if (selection[i]) f[i] = fileList.get(i);
-                }
+                for (int i = 0; i < f.length; i++)
+                    if (selection[i]) f[i] = fileList[i];
                 if (f.length > 0) {
-                    builder.setItems(moreItemContextMenu3, (dialog, which) -> {
-                        switch (which) {
-                            case 0: // move
-                                for (int i = 0; i < selection.length; i++) {
-                                    if (selection[i]) origins.add(fileList.get(i).getPath());
-                                }
-                                cancelButton.callOnClick();
-                                mainNavigationBar.setVisibility(View.GONE);
-                                copyFileNavigationBar.setVisibility(View.VISIBLE);
-                                movingFile = true;
-                                extractingFile = false;
-                                break;
-                            case 1: // compress
-                                showCompressDialog(f);
-                            case 2: // properties
-                                // properties
-                                break;
-                            default:
-                                // throw new IllegalArgumentException();
-                                break;
-                        }
-                    });
-                    builder.show();
+                    SelectDialog.show(this, null, new SelectDialogItem[]{
+                            new SelectDialogItem(
+                                    getResources().getString(R.string.move),
+                                    null,
+                                    ContextCompat.getDrawable(this, R.drawable.move),
+                                    a -> {
+                                        for (int i = 0; i < selection.length; i++)
+                                            if (selection[i]) origins.add(fileList[i].getPath());
+                                        cancelButton.callOnClick();
+                                        mainNavigationBar.setVisibility(View.GONE);
+                                        copyFileNavigationBar.setVisibility(View.VISIBLE);
+                                        movingFile = true;
+                                        extractingFile = false;
+                                    }
+                            ),
+                            new SelectDialogItem(
+                                    getResources().getString(R.string.compress),
+                                    null,
+                                    ContextCompat.getDrawable(this, R.drawable.compress),
+                                    a -> showCompressDialog(f)
+                            )
+                    }, AlertDialog.cancelButton);
                 }
             }
         });
@@ -1360,7 +1283,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         cancelCopyButton.setOnLongClickListener(Utils::toastContentDescription);
         pasteButton.setOnLongClickListener(Utils::toastContentDescription);
         toolbar.setOnClickListener(view -> {
-            final AlertDialog.Builder a = new AlertDialog.Builder(this);
+            final AlertDialog a = new AlertDialog(this);
             a.setTitle(R.string.jump_to_path);
             final AppCompatEditText b = new AppCompatEditText(this);
             b.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
@@ -1404,9 +1327,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         fileManagerInitialized = true;
     }
 
-    final void showCompressDialog(Filex[] f) {
+    final void showCompressDialog(Filex... f) {
         if (f.length > 0) {
-            final AlertDialog.Builder a = new AlertDialog.Builder(this);
+            final AlertDialog a = new AlertDialog(this);
             a.setTitle(R.string.compress);
             final View v = LayoutInflater.from(this).inflate(R.layout.compress_file_dialog, null, false);
             final AppCompatEditText b = v.findViewById(R.id.fileName);
@@ -1540,6 +1463,10 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             Toast.makeText(this, R.string.nothing_selected_message, Toast.LENGTH_SHORT).show();
     }
 
+    final void showPropertyDialog(Filex f) {
+        throw new Error(null, null);
+    }
+
     final void initializeStoragePartitionContents() {
         storagePartitionInternalProgressBar.setMax(100);
         storagePartitionExternalProgressBar.setMax(100);
@@ -1646,7 +1573,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     @SuppressLint("NonConstantResourceId")
     final void showFileExistsDialog(final Filex a, final Filex b) {
         isPaused = true;
-        final AlertDialog.Builder c = new AlertDialog.Builder(this);
+        final AlertDialog c = new AlertDialog(this);
         c.setTitle(R.string.file_exists_message);
         c.setMessage(b.getName());
         final RadioGroup d = new RadioGroup(this, null);
@@ -1723,7 +1650,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
 
     @TestOnly
     final void verifyDexFile() throws Exception {
-        final ZipInput a = new ZipInput(getPackageManager().getApplicationInfo(packageName, 0).sourceDir);
+        final ZipInput a = new ZipInput(getPackageManager().getApplicationInfo(getPackageName(), 0).sourceDir);
         final Filex b = new Filex(Utils.getTempDir(), UUID.randomUUID().toString());
         a.extract(b.getPath());
         final ArrayList<Filex> c = new ArrayList<>();
@@ -1755,7 +1682,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         }
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     private static final class FileAdaptor extends BaseAdapter {
         private FileData[] data = new FileData[0];
         private final Drawable defaultDrawable;
@@ -1815,30 +1741,11 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             public final AppCompatTextView fileName;
             public final AppCompatTextView fileInfo;
 
-            public ViewHolder(@NonNull final AppCompatImageView fileIcon, @NonNull final AppCompatTextView fileName, @NonNull final AppCompatTextView fileInfo) {
+            public ViewHolder(AppCompatImageView fileIcon, AppCompatTextView fileName, AppCompatTextView fileInfo) {
                 this.fileIcon = fileIcon;
                 this.fileName = fileName;
                 this.fileInfo = fileInfo;
             }
-
-            @NonNull
-            @Override
-            public final String toString() {
-                return "ViewHolder{" +
-                        "fileIcon=" + fileIcon +
-                        ", fileName=" + fileName +
-                        ", fileInfo=" + fileInfo +
-                        '}';
-            }
-        }
-
-        @Override
-        public final String toString() {
-            return "FileAdaptor{" +
-                    "data=" + Arrays.toString(data) +
-                    ", defaultDrawable=" + defaultDrawable +
-                    ", selectedDrawable=" + selectedDrawable +
-                    '}';
         }
     }
 
@@ -1934,26 +1841,26 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     }
 
     private static final class FileSizeTransform {
-        private final long bytes;
-        private final double kilobytes;
-        private final double megabytes;
-        private final double gigabytes;
-        private final double terabytes;
-        private final double petabytes;
-        private final double exabytes;
-        private final double zettabytes;
-        private final double yottabytes;
+        public final long bytes;
+        public final double kilobytes;
+        public final double megabytes;
+        public final double gigabytes;
+        public final double terabytes;
+        public final double petabytes;
+        public final double exabytes;
+        public final double zettabytes;
+        public final double yottabytes;
 
-        public FileSizeTransform(long l) {
+        private FileSizeTransform(long l) {
             bytes = l;
-            kilobytes = getFileSizeInKilobytes();
-            megabytes = getFileSizeInMegaBytes();
-            gigabytes = getFileSizeInGigabytes();
-            terabytes = getFileSizeInTerabytes();
-            petabytes = getFileSizeInPetabytes();
-            exabytes = getFileSizeInExabytes();
-            zettabytes = getFileSizeInZettabytes();
-            yottabytes = getFileSizeInYottabytes();
+            kilobytes = bytes / 1024d;
+            megabytes = kilobytes / 1024d;
+            gigabytes = megabytes / 1024d;
+            terabytes = gigabytes / 1024d;
+            petabytes = terabytes / 1024d;
+            exabytes = petabytes / 1024d;
+            zettabytes = exabytes / 1024d;
+            yottabytes = zettabytes / 1024d;
         }
 
         public final String getFinalFileSize() {
@@ -1987,62 +1894,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             }
             return "0B";
         }
-
-        private double getFileSizeInKilobytes() {
-            if (bytes >= 1024) return (double) bytes / 1024;
-            else return 0;
-        }
-
-        private double getFileSizeInMegaBytes() {
-            if (kilobytes >= 1024) return kilobytes / 1024;
-            else return 0;
-        }
-
-        private double getFileSizeInGigabytes() {
-            if (megabytes >= 1024) return megabytes / 1024;
-            else return 0;
-        }
-
-        private double getFileSizeInTerabytes() {
-            if (gigabytes >= 1024) return gigabytes / 1024;
-            else return 0;
-        }
-
-        private double getFileSizeInPetabytes() {
-            if (terabytes >= 1024) return terabytes / 1024;
-            else return 0;
-        }
-
-        private double getFileSizeInExabytes() {
-            if (petabytes >= 1024) return petabytes / 1024;
-            else return 0;
-        }
-
-        private double getFileSizeInZettabytes() {
-            if (exabytes >= 1024) return exabytes / 1024;
-            else return 0;
-        }
-
-        private double getFileSizeInYottabytes() {
-            if (zettabytes >= 1024) return zettabytes / 1024;
-            else return 0;
-        }
-
-        @NonNull
-        @Override
-        public final String toString() {
-            return "FileSizeTransform{" +
-                    "bytes=" + bytes +
-                    ", kilobytes=" + kilobytes +
-                    ", megabytes=" + megabytes +
-                    ", gigabytes=" + gigabytes +
-                    ", terabytes=" + terabytes +
-                    ", petabytes=" + petabytes +
-                    ", exabytes=" + exabytes +
-                    ", zettabytes=" + zettabytes +
-                    ", yottabytes=" + yottabytes +
-                    '}';
-        }
     }
 
     private static final class MemoryStatus {
@@ -2050,15 +1901,14 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         private final long availableMemorySize;
         private final long totalMemorySize;
 
-        public MemoryStatus(String s) {
+        private MemoryStatus(String s) {
             this.path = s;
             this.availableMemorySize = getAvailableMemorySize();
             this.totalMemorySize = getTotalMemorySize();
         }
 
         public final byte getMemoryUsagePercentage() {
-            double a = (double) availableMemorySize / (double) totalMemorySize;
-            return (byte) (a * 100);
+            return (byte) ((double) availableMemorySize / (double) totalMemorySize * 100);
         }
 
         public final String getFinalAvailableMemorySize() {
@@ -2089,16 +1939,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             } catch (Exception e) {
                 return -1;
             }
-        }
-
-        @NonNull
-        @Override
-        public final String toString() {
-            return "MemoryStatus{" +
-                    "path='" + path + '\'' +
-                    ", availableMemorySize=" + availableMemorySize +
-                    ", totalMemorySize=" + totalMemorySize +
-                    '}';
         }
     }
 

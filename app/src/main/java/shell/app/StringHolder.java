@@ -1,28 +1,28 @@
 package shell.app;
 
 import com.mindrex.data.Array;
-import com.mindrex.data.String;
+import com.mindrex.data.string;
 
 import java.util.Arrays;
 
 @SuppressWarnings({"unused"})
 public final class StringHolder implements CharSequence {
     private char[] currentValue;
-    private String[] previousValue;
+    private string[] previousValue;
 
     public StringHolder() {
         this.currentValue = new char[0];
-        this.previousValue = new String[0];
+        this.previousValue = new string[0];
     }
 
-    public final String loadPrevious() {
+    public final string loadPrevious() {
         return previousValue[previousValue.length - 1];
     }
 
     public final void setValue(CharSequence s) {
-        final String a = new String(s);
+        final string a = new string(s);
         if (a.charData() != currentValue) {
-            String[] b = Array.append(previousValue, new String(currentValue));
+            string[] b = Array.append(previousValue, new string(currentValue));
             if (b.length > 10) b = Array.remove(b, 0);
             this.previousValue = b;
             this.currentValue = a.toCharArray();
@@ -32,7 +32,7 @@ public final class StringHolder implements CharSequence {
     public final CharSequence restorePreviousValue() {
         if (previousValue.length > 0) {
             final int i = previousValue.length - 1;
-            final String a = previousValue[i];
+            final string a = previousValue[i];
             previousValue = Array.remove(previousValue, i);
             currentValue = a.toCharArray();
             return a;
@@ -51,8 +51,8 @@ public final class StringHolder implements CharSequence {
     }
 
     @Override
-    public final String subSequence(int start, int end) {
-        return new String(Array.subArray(currentValue, start, end));
+    public final string subSequence(int start, int end) {
+        return new string(Array.subArray(currentValue, start, end));
     }
 
     public final boolean equals(Object a) {
@@ -61,18 +61,18 @@ public final class StringHolder implements CharSequence {
         else if (a instanceof CharSequence) {
             if (a instanceof StringHolder)
                 return Arrays.equals(((StringHolder) a).currentValue, currentValue);
-            else if (a instanceof String)
-                return Arrays.equals(((String) a).toCharArray(), currentValue);
+            else if (a instanceof string)
+                return Arrays.equals(((string) a).toCharArray(), currentValue);
             else if (a instanceof java.lang.String)
                 return Arrays.equals(((java.lang.String) a).toCharArray(), currentValue);
-            else return Arrays.equals(new String((CharSequence) a).toCharArray(), currentValue);
+            else return Arrays.equals(new string((CharSequence) a).toCharArray(), currentValue);
         } else if (a instanceof Character)
             return currentValue.length == 1 && currentValue[0] == (Character) a;
         else return false;
     }
 
     public final char[] toCharArray() {
-        return new String(currentValue).toCharArray();
+        return new string(currentValue).toCharArray();
     }
 
     @Override

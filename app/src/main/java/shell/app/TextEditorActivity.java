@@ -21,7 +21,7 @@ import com.mindrex.android.appsupport.Filex;
 import com.mindrex.android.appsupport.Utils;
 import com.mindrex.util.Sfx;
 
-import java.io.File;
+import com.mindrex.io.File;
 
 // Notice: This file might have been changed from original.
 
@@ -58,9 +58,9 @@ public final class TextEditorActivity extends ActivityFramework {
                 if (s.startsWith("file:///")) {
                     s = s.replace("file:///", "/");
                     final File a = new File(s);
-                    Sfx.ass(((File) a).exists());
-                    if (!((File) a).canRead() || !((File) a).canWrite()) {
-                        tempFile = Utils.saveTempFile(a.getAbsolutePath());
+                    Sfx.ass(a.exists());
+                    if (!a.canRead() || !a.canWrite()) {
+                        tempFile = Utils.saveTempFile(a.getPath());
                         final TextReader b = new TextReader(tempFile);
                         editor.setText(b.readAsString());
                         b.close();

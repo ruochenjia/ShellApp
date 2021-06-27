@@ -183,7 +183,7 @@ public final class EditorTouch implements OnGestureListener, OnDoubleTapListener
             editor.getEditableText().append(Objects.requireNonNull(cm.getPrimaryClip()).getItemAt(0).getText().toString());
             scroller.startScroll(scroller.getCurrX(), scroller.getCurrY(), 0, scrollMaxY - getOffsetY(), 0);
         } catch (Exception e) {
-            E.print(e);
+            E.print(null, e);
         }
         return false;
     }
