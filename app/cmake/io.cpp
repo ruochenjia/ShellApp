@@ -139,7 +139,7 @@ Java_com_mindrex_io_NativeFileSystem_createSocketFile(JNIEnv *env, __unused jobj
                                                       jstring s) {
     const string a = env->GetStringUTFChars(s, (jboolean *) false);
     try {
-        skt::mkSkt(a.c_str());
+        skt::createSocket(a.c_str());
     } catch (const exception &e) {
         env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
@@ -224,17 +224,17 @@ Java_com_mindrex_io_NativeFileSystem_getFileSize(JNIEnv *env, __unused jobject c
     return -1;
 }
 
-jlong *Java_com_mindrex_io_NativeFileSystem_getFileLastModified(JNIEnv *env, __unused jobject clazz,
-                                                                jstring s) {
+jlong Java_com_mindrex_io_NativeFileSystem_getFileLastModified(JNIEnv *env, __unused jobject clazz,
+                                                               jstring s) {
     try {
+        const char *a = env->GetStringUTFChars(s, (jboolean *) false);
         struct stat attr{};
-        stat(env->GetStringUTFChars(s, (jboolean *) false), &attr);
-        const long *a = &attr.st_mtim.tv_nsec;
-        return (jlong *) a;
+        stat(a, &attr);
+        return attr.st_mtime;
     } catch (const exception &e) {
         env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
-    return (jlong *) -1l;
+    return -1l;
 }
 
 void Java_com_mindrex_io_NativeFileSystem_setFileLastModified(JNIEnv *env, __unused jobject clazz,
@@ -250,15 +250,12 @@ void Java_com_mindrex_io_NativeFileSystem_setFileLastModified(JNIEnv *env, __unu
 
 void Java_com_mindrex_io_NativeFileSystem_setFilePermission(JNIEnv *env, __unused jobject clazz,
                                                             jstring s, jint i) {
-//    try {
-//        fs::permissions(env->GetStringUTFChars(s, (jboolean *) false), (fs::perms) i,
-//                        fs::perm_options::replace);
-//    } catch (const exception &e) {
-//        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
-//    }
-    const char *a = env->GetStringUTFChars(s, (jboolean *) false);
-    const string b = to_string(i);
-    system(("com/mindrex/gm/NativeInterfaceException" + b + " \"" + a + "\"").c_str());
+    try {
+        fs::permissions(env->GetStringUTFChars(s, (jboolean *) false), (fs::perms) i,
+                        fs::perm_options::replace);
+    } catch (const exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    }
 }
 
 void
@@ -267,5 +264,21 @@ Java_com_mindrex_io_NativeFileSystem_setFileOwner(JNIEnv *env, __unused jobject 
     if (chown(env->GetStringUTFChars(s, (jboolean *) false), a, b) == -1)
         env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"),
                       "Cannot run chmod");
+}
+
+jint
+Java_com_mindrex_io_NativeFileSystem_getFileOwner(JNIEnv *env, __unused jobject clazz, jstring s) {
+    const char *a = env->GetStringUTFChars(s, (jboolean *) false);
+    struct stat attr{};
+    stat(a, &attr);
+    return attr.st_uid;
+}
+
+jint
+Java_com_mindrex_io_NativeFileSystem_getFileGroup(JNIEnv *env, __unused jobject clazz, jstring s) {
+    const char *a = env->GetStringUTFChars(s, (jboolean *) false);
+    struct stat attr{};
+    stat(a, &attr);
+    return attr.st_gid;
 }
 }

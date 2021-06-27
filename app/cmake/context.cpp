@@ -21,7 +21,7 @@ Java_com_mindrex_util_reflect_Reflection_newArray(JNIEnv *env, __unused jclass c
     return env->NewObjectArray(b, a, nullptr);
 }
 
-void Java_com_mindrex_gm_GmSystem_crs(JNIEnv *env, __unused jclass clazz) {
+void Java_com_mindrex_gm_GmSystem_crs(__unused JNIEnv *env, __unused jclass clazz) {
     throw " n u l l ";
 }
 }
