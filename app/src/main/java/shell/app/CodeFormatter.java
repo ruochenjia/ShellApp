@@ -16,11 +16,8 @@ import androidx.appcompat.widget.AppCompatButton;
 import com.mindrex.android.appsupport.E;
 import com.mindrex.android.appsupport.LinearLayout;
 import com.mindrex.android.appsupport.Utils;
-import com.mindrex.android.debugger.Log;
-import com.mindrex.data.ArrayHolder;
 import com.mindrex.data.DataStream;
 import com.mindrex.shell.R;
-
 import com.mindrex.util.json.JSONFormatter;
 
 import java.io.PrintStream;

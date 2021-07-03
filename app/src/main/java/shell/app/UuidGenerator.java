@@ -6,7 +6,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatTextView;
 
 import com.mindrex.shell.R;
@@ -48,13 +47,5 @@ public final class UuidGenerator extends ActivityFramework {
     public final void onResume() {
         super.onResume();
         getContentView().setVisibility(View.VISIBLE);
-    }
-
-    @NonNull
-    @Override
-    public final String toString() {
-        return "UuidGenerator{" +
-                "uuidDisplay=" + uuidDisplay +
-                '}';
     }
 }

@@ -86,6 +86,7 @@ import com.mindrex.io.ZipEntry;
 import com.mindrex.io.ZipInput;
 import com.mindrex.io.ZipOutput;
 import com.mindrex.shell.R;
+import com.mindrex.util.FilePermission;
 import com.mindrex.util.Sfx;
 
 import java.io.File;
@@ -212,7 +213,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                             b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.file_unknown);
                             break;
                     }
-                    b.description = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", GmRuntime.locale).format(f.lastModified()) + " " + new FileSizeTransform(f.size()).getFinalFileSize();
+                    b.description = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", GmRuntime.locale).format(f.lastModified()) + " " + new FileSizeTransform(f.size()).toString();
                     fileCount++;
                 }
                 a[i] = b;
@@ -470,15 +471,16 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             else b.check(R.id.a);
             f.setChecked(reverseOrder);
             a.setView(b);
-            a.setPositiveButton(R.string.selection_confirm, (dialog, which) -> {
-                final int r = b.getCheckedRadioButtonId();
-                if (r == R.id.b) Filex.sortingRule = Filex.SORT_BY_SIZE;
-                else if (r == R.id.c) Filex.sortingRule = Filex.SORT_BY_MODIFIED_TIME;
-                else Filex.sortingRule = Filex.SORT_BY_NAME;
-                reverseOrder = f.isChecked();
-                refreshContent();
-            });
-            a.setNegativeButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
+            a.setButtons(new DialogButton(DialogButton.POSITIVE,
+                    getResources().getString(R.string.selection_confirm),
+                    g -> {
+                        final int r = b.getCheckedRadioButtonId();
+                        if (r == R.id.b) Filex.sortingRule = Filex.SORT_BY_MODIFIED_TIME;
+                        else if (r == R.id.c) Filex.sortingRule = Filex.SORT_BY_SIZE;
+                        else Filex.sortingRule = Filex.SORT_BY_NAME;
+                        reverseOrder = f.isChecked();
+                        refreshContent();
+                    }), AlertDialog.cancelButton);
             a.show();
             return true;
         } else if (i == R.id.settings) {
@@ -535,182 +537,212 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                         startActivity(i);
                     } else if (fileExtension == FileExtension.ZIP_ARCHIVE || fileExtension == FileExtension.ARCHIVE) {
-                        final String[] a = new String[]{
-                                this.getResources().getString(R.string.view),
-                                this.getResources().getString(R.string.extract_here),
-                                this.getResources().getString(R.string.extract_to_archive_name),
-                                this.getResources().getString(R.string.extract_to_path)
-                        };
                         final String s = xf.getName();
-                        final AlertDialog b = new AlertDialog(this);
-                        b.setTitle(s);
-                        b.setPositiveButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
                         if (xf.getExtension().equals(".7z")) {
-                            b.setItems(a, (dialog, which) -> {
-                                switch (which) {
-                                    case 0:
-                                        // op
-                                        break;
-                                    case 1:
-                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
-                                        this.dialog.show();
-                                        handler.post(() -> {
-                                            try {
-                                                final ArchiveInput c = new SevenZInput(new FileInputStream(xf.getPath()));
-                                                c.extract(currentFile.toString());
-                                                c.close();
-                                            } catch (Exception e) {
-                                                E.print(this, e);
+                            SelectDialog.show(this, s, new SelectDialogItem[]{
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.view),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.view),
+                                            a -> {
                                             }
-                                            handler.sendEmptyMessage(1);
-                                        });
-                                        break;
-                                    case 2:
-                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
-                                        this.dialog.show();
-                                        handler.post(() -> {
-                                            try {
-                                                final String r = s.contains(".") ? s.substring(s.lastIndexOf(".")) : s + "_extracted";
-                                                final Filex d = new Filex(currentFile.toString(), r);
-                                                if (!d.exists()) d.mkdir();
-                                                else if (!d.isDirectory()) {
-                                                    if (d.isFile() && d.size() > 0)
-                                                        d.moveTo(d.getPath() + ".bak");
-                                                    else d.delete();
-                                                    d.mkdir();
-                                                }
-                                                final ArchiveInput c = new SevenZInput(new FileInputStream(xf.getPath()));
-                                                c.extract(r);
-                                            } catch (Exception e) {
-                                                E.print(this, e);
+                                    ),
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.extract_here),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.package_extractor),
+                                            a -> {
+                                                this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                                this.dialog.show();
+                                                handler.post(() -> {
+                                                    try {
+                                                        final ArchiveInput c = new SevenZInput(new FileInputStream(xf.getPath()));
+                                                        c.extract(currentFile.toString());
+                                                        c.close();
+                                                    } catch (Exception e) {
+                                                        E.print(this, e);
+                                                    }
+                                                    handler.sendEmptyMessage(1);
+                                                });
                                             }
-                                            handler.sendEmptyMessage(1);
-                                        });
-                                        break;
-                                    case 3:
-                                        origins.add(xf.getPath());
-                                        cancelButton.callOnClick();
-                                        mainNavigationBar.setVisibility(View.GONE);
-                                        copyFileNavigationBar.setVisibility(View.VISIBLE);
-                                        movingFile = false;
-                                        extractingFile = true;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            });
+                                    ),
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.extract_to_archive_name),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.package_extractor),
+                                            a -> {
+                                                this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                                this.dialog.show();
+                                                handler.post(() -> {
+                                                    try {
+                                                        final Filex d = new Filex(currentFile.toString(), IOUtils.removeFileExtension(xf.getPath()) + "_extracted");
+                                                        if (!d.exists()) d.mkdir();
+                                                        else if (!d.isDirectory()) {
+                                                            if (d.isFile() && d.size() > 0)
+                                                                d.moveTo(d.getPath() + ".bak");
+                                                            else d.delete();
+                                                            d.mkdir();
+                                                        }
+                                                        final ArchiveInput c = new SevenZInput(new FileInputStream(xf.getPath()));
+                                                        c.extract(d.getPath());
+                                                    } catch (Exception e) {
+                                                        E.print(this, e);
+                                                    }
+                                                    handler.sendEmptyMessage(1);
+                                                });
+                                            }
+                                    ),
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.extract_to_path),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.package_extractor),
+                                            a -> {
+                                                origins.add(xf.getPath());
+                                                cancelButton.callOnClick();
+                                                mainNavigationBar.setVisibility(View.GONE);
+                                                copyFileNavigationBar.setVisibility(View.VISIBLE);
+                                                movingFile = false;
+                                                extractingFile = true;
+                                            }
+                                    )
+                            }, AlertDialog.cancelButton);
                         } else if (xf.getExtension().equals(".tar")) {
-                            b.setItems(a, (dialog, which) -> {
-                                switch (which) {
-                                    case 0:
-                                        // op
-                                        break;
-                                    case 1:
-                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
-                                        this.dialog.show();
-                                        handler.post(() -> {
-                                            try {
-                                                final ArchiveInput c = new TarInput(new FileInputStream(xf.getPath()));
-                                                c.extract(currentFile.toString());
-                                                c.close();
-                                            } catch (Exception e) {
-                                                E.print(this, e);
+                            SelectDialog.show(this, s, new SelectDialogItem[]{
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.view),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.view),
+                                            a -> {
                                             }
-                                            handler.sendEmptyMessage(1);
-                                        });
-                                        break;
-                                    case 2:
-                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
-                                        this.dialog.show();
-                                        handler.post(() -> {
-                                            try {
-                                                final String r = s.contains(".") ? s.substring(s.lastIndexOf(".")) : s + "_extracted";
-                                                final Filex d = new Filex(currentFile.toString(), r);
-                                                if (!d.exists()) d.mkdir();
-                                                else if (!d.isDirectory()) {
-                                                    if (d.isFile() && d.size() > 0)
-                                                        d.moveTo(d.getPath() + ".bak");
-                                                    else d.delete();
-                                                    d.mkdir();
-                                                }
-                                                final ArchiveInput c = new TarInput(new FileInputStream(xf.getPath()));
-                                                c.extract(r);
-                                                c.close();
-                                            } catch (Exception e) {
-                                                E.print(this, e);
+                                    ),
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.extract_here),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.package_extractor),
+                                            a -> {
+                                                this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                                this.dialog.show();
+                                                handler.post(() -> {
+                                                    try {
+                                                        final ArchiveInput c = new TarInput(new FileInputStream(xf.getPath()));
+                                                        c.extract(currentFile.toString());
+                                                        c.close();
+                                                    } catch (Exception e) {
+                                                        E.print(this, e);
+                                                    }
+                                                    handler.sendEmptyMessage(1);
+                                                });
                                             }
-                                            handler.sendEmptyMessage(1);
-                                        });
-                                        break;
-                                    case 3:
-                                        origins.add(xf.getPath());
-                                        cancelButton.callOnClick();
-                                        mainNavigationBar.setVisibility(View.GONE);
-                                        copyFileNavigationBar.setVisibility(View.VISIBLE);
-                                        movingFile = false;
-                                        extractingFile = true;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            });
+                                    ),
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.extract_to_archive_name),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.package_extractor),
+                                            a -> {
+                                                this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                                this.dialog.show();
+                                                handler.post(() -> {
+                                                    try {
+                                                        final Filex d = new Filex(currentFile.toString(), IOUtils.removeFileExtension(xf.getPath()) + "_extracted");
+                                                        if (!d.exists()) d.mkdir();
+                                                        else if (!d.isDirectory()) {
+                                                            if (d.isFile() && d.size() > 0)
+                                                                d.moveTo(d.getPath() + ".bak");
+                                                            else d.delete();
+                                                            d.mkdir();
+                                                        }
+                                                        final ArchiveInput c = new TarInput(new FileInputStream(xf.getPath()));
+                                                        c.extract(d.getPath());
+                                                    } catch (Exception e) {
+                                                        E.print(this, e);
+                                                    }
+                                                    handler.sendEmptyMessage(1);
+                                                });
+                                            }
+                                    ),
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.extract_to_path),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.package_extractor),
+                                            a -> {
+                                                origins.add(xf.getPath());
+                                                cancelButton.callOnClick();
+                                                mainNavigationBar.setVisibility(View.GONE);
+                                                copyFileNavigationBar.setVisibility(View.VISIBLE);
+                                                movingFile = false;
+                                                extractingFile = true;
+                                            }
+                                    )
+                            }, AlertDialog.cancelButton);
                         } else {
-                            b.setItems(a, (dialog, which) -> {
-                                switch (which) {
-                                    case 0:
-                                        // op
-                                        break;
-                                    case 1:
-                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
-                                        this.dialog.show();
-                                        handler.post(() -> {
-                                            try {
-                                                final ZipInput c = new ZipInput(xf.getPath());
-                                                c.extract(currentFile.toString());
-                                                c.close();
-                                            } catch (Exception e) {
-                                                E.print(this, e);
+                            SelectDialog.show(this, s, new SelectDialogItem[]{
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.view),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.view),
+                                            a -> {
                                             }
-                                            handler.sendEmptyMessage(1);
-                                        });
-                                        break;
-                                    case 2:
-                                        this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
-                                        this.dialog.show();
-                                        handler.post(() -> {
-                                            try {
-                                                final String r = s.contains(".") ? s.substring(s.lastIndexOf(".")) : s + "_extracted";
-                                                final Filex d = new Filex(currentFile.toString(), r);
-                                                if (!d.exists()) d.mkdir();
-                                                else if (!d.isDirectory()) {
-                                                    if (d.isFile() && d.size() > 0)
-                                                        d.moveTo(d.getPath() + ".bak");
-                                                    else d.delete();
-                                                    d.mkdir();
-                                                }
-                                                final ZipInput c = new ZipInput(xf.getPath());
-                                                c.extract(currentFile.toString());
-                                                c.close();
-                                            } catch (Exception e) {
-                                                E.print(this, e);
+                                    ),
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.extract_here),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.package_extractor),
+                                            a -> {
+                                                this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                                this.dialog.show();
+                                                handler.post(() -> {
+                                                    try {
+                                                        final ArchiveInput c = new ZipInput(new FileInputStream(xf.getPath()));
+                                                        c.extract(currentFile.toString());
+                                                        c.close();
+                                                    } catch (Exception e) {
+                                                        E.print(this, e);
+                                                    }
+                                                    handler.sendEmptyMessage(1);
+                                                });
                                             }
-                                            handler.sendEmptyMessage(1);
-                                        });
-                                        break;
-                                    case 3:
-                                        origins.add(xf.getPath());
-                                        cancelButton.callOnClick();
-                                        mainNavigationBar.setVisibility(View.GONE);
-                                        copyFileNavigationBar.setVisibility(View.VISIBLE);
-                                        movingFile = false;
-                                        extractingFile = true;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            });
+                                    ),
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.extract_to_archive_name),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.package_extractor),
+                                            a -> {
+                                                this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                                this.dialog.show();
+                                                handler.post(() -> {
+                                                    try {
+                                                        final Filex d = new Filex(currentFile.toString(), IOUtils.removeFileExtension(xf.getPath()) + "_extracted");
+                                                        if (!d.exists()) d.mkdir();
+                                                        else if (!d.isDirectory()) {
+                                                            if (d.isFile() && d.size() > 0)
+                                                                d.moveTo(d.getPath() + ".bak");
+                                                            else d.delete();
+                                                            d.mkdir();
+                                                        }
+                                                        final ArchiveInput c = new ZipInput(new FileInputStream(xf.getPath()));
+                                                        c.extract(d.getPath());
+                                                    } catch (Exception e) {
+                                                        E.print(this, e);
+                                                    }
+                                                    handler.sendEmptyMessage(1);
+                                                });
+                                            }
+                                    ),
+                                    new SelectDialogItem(
+                                            getResources().getString(R.string.extract_to_path),
+                                            null,
+                                            ContextCompat.getDrawable(this, R.drawable.package_extractor),
+                                            a -> {
+                                                origins.add(xf.getPath());
+                                                cancelButton.callOnClick();
+                                                mainNavigationBar.setVisibility(View.GONE);
+                                                copyFileNavigationBar.setVisibility(View.VISIBLE);
+                                                movingFile = false;
+                                                extractingFile = true;
+                                            }
+                                    )
+                            }, AlertDialog.cancelButton);
                         }
-                        b.show();
                     } else if (fileExtension == FileExtension.VIDEO) {
                         Application.sendIntentData(this, xf.getTarget(), "video/*");
                     } else if (fileExtension == FileExtension.XAPK) {// unf
@@ -721,45 +753,42 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     } else if (fileExtension == FileExtension.APK) {
                         Application.sendIntentData(this, xf.getTarget(), "application/vnd.android.package-archive");
                     } else if (fileExtension == FileExtension.COMPRESSED) {
-                        final AlertDialog d = new AlertDialog(this);
                         final String s = xf.getName();
-                        d.setTitle(s);
-                        d.setMessage(R.string.extract_file_confirm_message);
-                        d.setPositiveButton(R.string.selection_confirm, (dialog, which) -> {
-                            this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
-                            this.dialog.show();
-                            handler.post(() -> {
-                                try {
-                                    ArchiveType archiveType = ArchiveType.fromFileExtension(s);
-                                    if (archiveType == ArchiveType.BROTLI) {
-                                        CompressUtils.extractBrotli(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
-                                    } else if (archiveType == ArchiveType.BZIP2) {
-                                        CompressUtils.extractBz2(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
-                                    } else if (archiveType == ArchiveType.GZIP) {
-                                        CompressUtils.extractGz(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
-                                    } else if (archiveType == ArchiveType.LZ4) {
-                                        CompressUtils.extractLz4(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
-                                    } else if (archiveType == ArchiveType.PACK200) {
-                                        CompressUtils.extractPack200(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
-                                    } else if (archiveType == ArchiveType.SNAPPY) {
-                                        CompressUtils.extractSnappy(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
-                                    } else if (archiveType == ArchiveType.XZ) {
-                                        CompressUtils.extractXz(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
-                                    } else if (archiveType == ArchiveType.Z) {
-                                        CompressUtils.extractZ(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
-                                    } else if (archiveType == ArchiveType.ZSTD) {
-                                        CompressUtils.extractZst(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
-                                    } else {
-                                        throw new IllegalArgumentException("Unsupported file type: " + s);
-                                    }
-                                } catch (Exception l) {
-                                    E.print(this, l);
-                                }
-                                handler.sendEmptyMessage(1);
-                            });
-                        });
-                        d.setNegativeButton(R.string.selection_cancel, (dialog, which) -> dialog.cancel());
-                        d.show();
+                        AlertDialog.show(this, s, getResources().getString(R.string.extract_file_confirm_message),
+                                new DialogButton(DialogButton.POSITIVE, getResources().getString(R.string.selection_confirm),
+                                        a -> {
+                                            this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
+                                            this.dialog.show();
+                                            handler.post(() -> {
+                                                try {
+                                                    ArchiveType archiveType = ArchiveType.fromFileExtension(s);
+                                                    if (archiveType == ArchiveType.BROTLI) {
+                                                        CompressUtils.extractBrotli(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                    } else if (archiveType == ArchiveType.BZIP2) {
+                                                        CompressUtils.extractBz2(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                    } else if (archiveType == ArchiveType.GZIP) {
+                                                        CompressUtils.extractGz(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                    } else if (archiveType == ArchiveType.LZ4) {
+                                                        CompressUtils.extractLz4(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                    } else if (archiveType == ArchiveType.PACK200) {
+                                                        CompressUtils.extractPack200(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                    } else if (archiveType == ArchiveType.SNAPPY) {
+                                                        CompressUtils.extractSnappy(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                    } else if (archiveType == ArchiveType.XZ) {
+                                                        CompressUtils.extractXz(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                    } else if (archiveType == ArchiveType.Z) {
+                                                        CompressUtils.extractZ(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                    } else if (archiveType == ArchiveType.ZSTD) {
+                                                        CompressUtils.extractZst(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                    } else {
+                                                        throw new IllegalArgumentException("Unsupported file type: " + s);
+                                                    }
+                                                } catch (Exception l) {
+                                                    E.print(this, l);
+                                                }
+                                                handler.sendEmptyMessage(1);
+                                            });
+                                        }), AlertDialog.cancelButton);
                     } else if (fileExtension == FileExtension.DISK_IMAGE) {// unf
                     } else if (fileExtension == FileExtension.UNKNOWN || fileExtension == FileExtension.DEFAULT) {
                         try {
@@ -793,7 +822,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
 
     @Override
     public final void uncaughtException(@NonNull Thread t, @NonNull Throwable e) {
-        Log.c(e);
+        Log.c(t, e);
     }
 
     final void refreshContent() {
@@ -959,7 +988,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 }
                 final Filex f = (Filex) Sfx.nonnull(tmp);
                 if (f.isDirectory()) {
-                    SelectDialog.show(this, null, new SelectDialogItem[]{
+                    SelectDialog.show(this, getResources().getString(R.string.menu), new SelectDialogItem[]{
                             new SelectDialogItem(
                                     getResources().getString(R.string.move),
                                     null,
@@ -1022,7 +1051,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 } else {
                     final FileExtension g = FileExtension.CheckFileExtension(f);
                     if (g == FileExtension.ZIP_ARCHIVE || g == FileExtension.APK) {
-                        SelectDialog.show(this, null, new SelectDialogItem[]{
+                        SelectDialog.show(this, getResources().getString(R.string.menu), new SelectDialogItem[]{
                                 new SelectDialogItem(
                                         getResources().getString(R.string.open_with),
                                         null,
@@ -1120,7 +1149,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                 )
                         }, AlertDialog.cancelButton);
                     } else {
-                        SelectDialog.show(this, null, new SelectDialogItem[]{
+                        SelectDialog.show(this, getResources().getString(R.string.menu), new SelectDialogItem[]{
                                 new SelectDialogItem(
                                         getResources().getString(R.string.open_with),
                                         null,
@@ -1207,7 +1236,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 for (int i = 0; i < f.length; i++)
                     if (selection[i]) f[i] = fileList[i];
                 if (f.length > 0) {
-                    SelectDialog.show(this, null, new SelectDialogItem[]{
+                    SelectDialog.show(this, getResources().getString(R.string.menu), new SelectDialogItem[]{
                             new SelectDialogItem(
                                     getResources().getString(R.string.move),
                                     null,
@@ -1463,8 +1492,53 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             Toast.makeText(this, R.string.nothing_selected_message, Toast.LENGTH_SHORT).show();
     }
 
+    @SuppressLint("InflateParams")
     final void showPropertyDialog(Filex f) {
-        throw new Error(null, null);
+        AlertDialog a = new AlertDialog(this);
+        a.setTitle(R.string.properties);
+        final View b = LayoutInflater.from(this).inflate(R.layout.file_property_dialog, null, false);
+        ((AppCompatTextView) b.findViewById(R.id.name)).setText(f.getName());
+        ((AppCompatTextView) b.findViewById(R.id.parent)).setText(f.getParentPath());
+        String c;
+        try {
+            if (f.isDirectory())
+                c = getResources().getString(R.string.directory);
+            else if (FileSystem.nativeFs.isSymlink(f.getPath()))
+                c = getResources().getString(R.string.symbolic_link);
+            else if (FileSystem.nativeFs.isBlockFile(f.getPath()))
+                c = getResources().getString(R.string.block_file);
+            else if (FileSystem.nativeFs.isSocketFile(f.getPath()))
+                c = getResources().getString(R.string.socket_file);
+            else if (FileSystem.nativeFs.isFile(f.getPath()))
+                c = getResources().getString(R.string.file);
+            else c = getResources().getString(R.string.unknown);
+        } catch (Exception e) {
+            c = getResources().getString(R.string.unknown);
+        }
+        ((AppCompatTextView) b.findViewById(R.id.type)).setText(c);
+        ((AppCompatTextView) b.findViewById(R.id.size)).setText(new FileSizeTransform(f.size()).toString());
+        ((AppCompatTextView) b.findViewById(R.id.modifiedTime)).setText(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", GmRuntime.locale).format(f.lastModified()));
+        try {
+            c = FilePermission.init(FileSystem.nativeFs.getFilePermission(f.getPath())).toString();
+        } catch (Exception e) {
+            c = getResources().getString(R.string.unknown);
+        }
+        ((AppCompatTextView) b.findViewById(R.id.permissions)).setText(c);
+        try {
+            c = String.valueOf(FileSystem.nativeFs.getFileOwner(f.getPath()));
+        } catch (Exception e) {
+            c = getResources().getString(R.string.unknown);
+        }
+        ((AppCompatTextView) b.findViewById(R.id.uid)).setText(c);
+        try {
+            c = String.valueOf(FileSystem.nativeFs.getFileGroup(f.getPath()));
+        } catch (Exception e) {
+            c = getResources().getString(R.string.unknown);
+        }
+        ((AppCompatTextView) b.findViewById(R.id.gid)).setText(c);
+        a.setView(b);
+        a.setButtons(AlertDialog.dismissButton);
+        a.show();
     }
 
     final void initializeStoragePartitionContents() {
@@ -1853,27 +1927,28 @@ public final class MainActivity extends ActivityFramework implements AdapterView
 
         private FileSizeTransform(long l) {
             bytes = l;
-            kilobytes = bytes / 1024d;
-            megabytes = kilobytes / 1024d;
-            gigabytes = megabytes / 1024d;
-            terabytes = gigabytes / 1024d;
-            petabytes = terabytes / 1024d;
-            exabytes = petabytes / 1024d;
-            zettabytes = exabytes / 1024d;
-            yottabytes = zettabytes / 1024d;
+            kilobytes = bytes >= 1024 ? bytes / 1024d : 0;
+            megabytes = kilobytes >= 1024 ? kilobytes / 1024d : 0;
+            gigabytes = megabytes >= 1024 ? megabytes / 1024d : 0;
+            terabytes = gigabytes >= 1024 ? gigabytes / 1024d : 0;
+            petabytes = terabytes >= 1024 ? terabytes / 1024d : 0;
+            exabytes = petabytes >= 1024 ? petabytes / 1024d : 0;
+            zettabytes = exabytes >= 1024 ? exabytes / 1024d : 0;
+            yottabytes = zettabytes >= 1024 ? zettabytes / 1024d : 0;
         }
 
-        public final String getFinalFileSize() {
+        @Override
+        public final String toString() {
             final DecimalFormat a = new DecimalFormat("0.00");
-            if (bytes > 0) {
-                if (kilobytes > 0) {
-                    if (megabytes > 0) {
-                        if (gigabytes > 0) {
-                            if (terabytes > 0) {
-                                if (petabytes > 0) {
-                                    if (exabytes > 0) {
-                                        if (zettabytes > 0) {
-                                            if (yottabytes > 0) {
+            if (bytes >= 1) {
+                if (kilobytes >= 1) {
+                    if (megabytes >= 1) {
+                        if (gigabytes >= 1) {
+                            if (terabytes >= 1) {
+                                if (petabytes >= 1) {
+                                    if (exabytes >= 1) {
+                                        if (zettabytes >= 1) {
+                                            if (yottabytes >= 1) {
                                                 return (a.format(yottabytes) + "YB");
                                             }
                                             return (a.format(zettabytes) + "ZB");
@@ -1912,11 +1987,11 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         }
 
         public final String getFinalAvailableMemorySize() {
-            return new FileSizeTransform(availableMemorySize).getFinalFileSize();
+            return new FileSizeTransform(availableMemorySize).toString();
         }
 
         public final String getFinalTotalMemorySize() {
-            return new FileSizeTransform(totalMemorySize).getFinalFileSize();
+            return new FileSizeTransform(totalMemorySize).toString();
         }
 
         private long getAvailableMemorySize() {

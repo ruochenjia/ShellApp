@@ -1,6 +1,7 @@
 package shell.app;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Build;

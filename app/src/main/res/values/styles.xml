@@ -21,7 +21,6 @@
     </style>
 
     <style name="Menu" parent="AppTheme">
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="fontFamily">@font/menu</item>
     </style>
 

@@ -276,5 +276,5 @@
     </application>
     <uses-sdk
         android:maxSdkVersion="26"
-        tools:overrideLibrary="com.topjohnwu.superuser.ipc" />
+        tools:overrideLibrary="com.topjohnwu.superuser.ipc,io.github.rosemoe.editor" />
 </manifest>

@@ -6,7 +6,7 @@ add_library(native-lib SHARED
         context.cpp
         io.cpp
         socket.h
-        testjni.h
+        stdobjs.h
         )
 find_library(log-lib log)
 target_link_libraries(native-lib ${log-lib})

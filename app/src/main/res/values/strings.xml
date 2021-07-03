@@ -104,11 +104,21 @@
     <string name="web_browser">Web Browser</string>
     <string name="your_random_uuid">Your random UUID: </string>
     <string name="name">Name</string>
-    <string name="modified_date">Modified Date</string>
+    <string name="parent">Parent</string>
+    <string name="type">Type</string>
+    <string name="modified_date">Modified Time</string>
+    <string name="permissions">Permissions</string>
     <string name="size">Size</string>
+    <string name="uid">UID</string>
+    <string name="gid">GID</string>
     <string name="reverse_order">Reverse Order</string>
     <string name="execute_command">Execute Command</string>
     <string name="execute">Execute</string>
     <string name="unknown_file_path">Unknown file path</string>
     <string name="root_based_features">Root Based Features</string>
+    <string name="directory">Directory</string>
+    <string name="symbolic_link">Symbolic Link</string>
+    <string name="block_file">Block File</string>
+    <string name="socket_file">Socket File</string>
+    <string name="unknown">Unknown</string>
 </resources>

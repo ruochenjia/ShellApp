@@ -1,5 +1,6 @@
 #include <jni.h>
 #include <vector>
+#include "stdobjs.h"
 
 static std::vector<jobject> data;
 
@@ -17,7 +18,9 @@ jlong Java_com_mindrex_data_ArrayHolder_init__Ljava_lang_Class_2I(JNIEnv *env, _
 jlong
 Java_com_mindrex_data_ArrayHolder_init___3Ljava_lang_Object_2(JNIEnv *env, __unused jobject obj,
                                                               jobjectArray a) {
-
+    const jlong c = data.size();
+    data.push_back(env->NewGlobalRef(a));
+    return c;
 }
 #pragma clang diagnostic pop
 

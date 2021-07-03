@@ -46,7 +46,6 @@ import com.topjohnwu.superuser.Shell;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -266,7 +265,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                         else RootRequiredDialog.show(this);
                     })
             };
-            final SelectDialog d = SelectDialog.show(this, a.label, c, b);
+            SelectDialog.show(this, a.label, c, b);
         } catch (Exception e) {
             E.print(this, e);
         }
@@ -316,7 +315,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
         });
     }
 
-    private static final class ApplicationInfo implements Comparable<ApplicationInfo>, Comparator<ApplicationInfo> {
+    private static final class ApplicationInfo implements Comparable<ApplicationInfo> {
         public static byte sortingRule = 0; // 0: package name; 1: label; 2: install time; 3: update time
 
         public final String packageName;
@@ -346,8 +345,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
             return compare(this, o);
         }
 
-        @Override
-        public final int compare(ApplicationInfo o1, ApplicationInfo o2) {
+        public static int compare(ApplicationInfo o1, ApplicationInfo o2) {
             switch (sortingRule) {
                 case 0:
                     return o1.packageName.compareTo(o2.packageName);
@@ -466,17 +464,6 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                 this.appName = b;
                 this.appVersion = c;
                 this.appPackageName = d;
-            }
-
-            @NonNull
-            @Override
-            public final String toString() {
-                return "ViewHolder{" +
-                        "appIcon=" + appIcon +
-                        ", appName=" + appName +
-                        ", appVersion=" + appVersion +
-                        ", appPackageName=" + appPackageName +
-                        '}';
             }
         }
     }

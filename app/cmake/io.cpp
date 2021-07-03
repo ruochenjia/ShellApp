@@ -32,7 +32,7 @@ Java_com_mindrex_io_NativeFileSystem_copyFile(JNIEnv *env, __unused jobject claz
 jobjectArray
 Java_com_mindrex_io_NativeFileSystem_listChildren(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
-        vector<string> a;
+        std::vector<string> a;
         for (const auto &b : fs::directory_iterator(
                 env->GetStringUTFChars(s, (jboolean *) false))) {
             a.push_back(b.path().string());
@@ -129,7 +129,7 @@ Java_com_mindrex_io_NativeFileSystem_createFile(JNIEnv *env, __unused jobject cl
     try {
         if (fs::exists(a))
             throw runtime_error("Target file already exists");
-        else ofstream(a).close();
+        else std::ofstream(a).close();
     } catch (const exception &e) {
         env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
@@ -137,9 +137,8 @@ Java_com_mindrex_io_NativeFileSystem_createFile(JNIEnv *env, __unused jobject cl
 void
 Java_com_mindrex_io_NativeFileSystem_createSocketFile(JNIEnv *env, __unused jobject clazz,
                                                       jstring s) {
-    const string a = env->GetStringUTFChars(s, (jboolean *) false);
     try {
-        skt::createSocket(a.c_str());
+        skt::createSocket(env->GetStringUTFChars(s, (jboolean *) false));
     } catch (const exception &e) {
         env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
@@ -157,7 +156,7 @@ Java_com_mindrex_io_NativeFileSystem_getFilePermission(JNIEnv *env, __unused job
                                                        jstring s) {
     try {
         const fs::perms p = fs::status(env->GetStringUTFChars(s, (jboolean *) false)).permissions();
-        return (jint) p;
+        return (int) p;
     } catch (const exception &e) {
         env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
@@ -227,25 +226,31 @@ Java_com_mindrex_io_NativeFileSystem_getFileSize(JNIEnv *env, __unused jobject c
 jlong Java_com_mindrex_io_NativeFileSystem_getFileLastModified(JNIEnv *env, __unused jobject clazz,
                                                                jstring s) {
     try {
-        const char *a = env->GetStringUTFChars(s, (jboolean *) false);
-        struct stat attr{};
-        stat(a, &attr);
-        return attr.st_mtime;
+//        const char *a = env->GetStringUTFChars(s, (jboolean *) false);
+//        struct stat64 attr{};
+//        stat64(a, &attr);
+//        return attr.st_mtime;
+        jclass a = env->FindClass("java/io/File");
+        jobject b = env->NewObject(a, env->GetMethodID(a, "<init>", "(Ljava/lang/String;)V"), s);
+        jobject c = env->GetStaticObjectField(a, env->GetStaticFieldID(a, "fs",
+                                                                       "Ljava/io/FileSystem;"));
+        return env->CallLongMethod(c, env->GetMethodID(env->FindClass("java/io/FileSystem"),
+                                                       "getLastModifiedTime", "(Ljava/io/File;)J"),
+                                   b);
     } catch (const exception &e) {
         env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
     }
-    return -1l;
+    return (uint) -1l;
 }
 
 void Java_com_mindrex_io_NativeFileSystem_setFileLastModified(JNIEnv *env, __unused jobject clazz,
                                                               jstring s, jlong j) {
-    const char *a = env->GetStringUTFChars(s, (jboolean *) false);
-    struct stat attr{};
-    struct utimbuf new_times{};
-    stat(a, &attr);
-    new_times.actime = attr.st_atime;
-    new_times.modtime = j;
-    utime(a, &new_times);
+    jclass a = env->FindClass("java/io/File");
+    jobject b = env->NewObject(a, env->GetMethodID(a, "<init>", "(Ljava/lang/String;)V"), s);
+    jobject c = env->GetStaticObjectField(a,
+                                          env->GetStaticFieldID(a, "fs", "Ljava/io/FileSystem;"));
+    env->CallBooleanMethod(c, env->GetMethodID(env->FindClass("java/io/FileSystem"),
+                                               "setLastModifiedTime", "(Ljava/io/File;J)Z"), b, j);
 }
 
 void Java_com_mindrex_io_NativeFileSystem_setFilePermission(JNIEnv *env, __unused jobject clazz,

@@ -61,19 +61,14 @@ public final class Application extends SupportApplication {
     }
 
     @CallSuper
-    public static void sendIntentData(final Context context, File f, final String intentType) {
-        sendIntentData(context, f, intentType, false);
-    }
-
-    public static void sendIntentData(Context context, File f, String intentType, boolean grantWritePermission) {
+    public static void sendIntentData(Context ctx, File f, String type) {
         final Intent a = new Intent(Intent.ACTION_VIEW);
         a.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            final Uri b = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", f);
-            a.setDataAndType(b, intentType);
-        } else a.setDataAndType(Uri.fromFile(f), intentType);
-        a.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        if (grantWritePermission) a.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        context.startActivity(a);
+            final Uri b = FileProvider.getUriForFile(ctx, ctx.getPackageName() + ".provider", f);
+            a.setDataAndType(b, type);
+        } else a.setDataAndType(Uri.fromFile(f), type);
+        a.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        ctx.startActivity(a);
     }
 }

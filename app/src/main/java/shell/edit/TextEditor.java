@@ -163,8 +163,7 @@ public class TextEditor extends AppCompatTextView implements ViewTreeObserver.On
                 posY += layout.getLineBaseline(line) - layout.getLineBaseline(line - 1);
                 canvas.drawText(String.valueOf(line + 1), ((int) layout.getLineLeft(line)) + Utils.dpToPixel(2), posY, p);
             } catch (Exception e) {
-                if (e instanceof IndexOutOfBoundsException) break;
-                else throw new RuntimeException(e);
+                break;
             }
         }
     }

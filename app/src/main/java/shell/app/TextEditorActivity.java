@@ -12,24 +12,18 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.mindrex.android.edit.TextEditor;
+import com.mindrex.android.appsupport.E;
 import com.mindrex.io.TextReader;
 import com.mindrex.io.TextWriter;
 import com.mindrex.shell.R;
-import com.mindrex.android.appsupport.E;
-import com.mindrex.android.appsupport.Filex;
-import com.mindrex.android.appsupport.Utils;
-import com.mindrex.util.Sfx;
 
-import com.mindrex.io.File;
+import io.github.rosemoe.editor.widget.CodeEditor;
 
 // Notice: This file might have been changed from original.
 
 public final class TextEditorActivity extends ActivityFramework {
-    private TextEditor editor;
+    private CodeEditor editor;
     private Uri filePath;
-    private boolean initialized;
-    private String tempFile;
 
     public TextEditorActivity() {
     }
@@ -37,9 +31,16 @@ public final class TextEditorActivity extends ActivityFramework {
     @Override
     public final void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        editor = new TextEditor(this);
+        editor = new CodeEditor(this);
         setContentView(editor);
-        initialized = false;
+        try {
+            filePath = receiveIntentData();
+            try (TextReader a = new TextReader(getContentResolver().openInputStream(filePath))) {
+                editor.setText(a.readAsString());
+            }
+        } catch (Exception e) {
+            E.print(this, e);
+        }
     }
 
     @Override
@@ -51,33 +52,7 @@ public final class TextEditorActivity extends ActivityFramework {
     @Override
     public final void onResume() {
         super.onResume();
-        if (!initialized) {
-            try {
-                filePath = receiveIntentData();
-                String s = filePath.toString();
-                if (s.startsWith("file:///")) {
-                    s = s.replace("file:///", "/");
-                    final File a = new File(s);
-                    Sfx.ass(a.exists());
-                    if (!a.canRead() || !a.canWrite()) {
-                        tempFile = Utils.saveTempFile(a.getPath());
-                        final TextReader b = new TextReader(tempFile);
-                        editor.setText(b.readAsString());
-                        b.close();
-                    } else {
-                        final TextReader b = new TextReader(s);
-                        editor.setText(b.readAsString());
-                        b.close();
-                    }
-                } else {
-                    final TextReader a = new TextReader(getContentResolver().openInputStream(filePath));
-                    editor.setText(a.readAsString());
-                    a.close();
-                }
-            } catch (Exception e) {
-                E.print(this, e);
-            }
-        } else getContentView().setVisibility(View.VISIBLE);
+        getContentView().setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -99,35 +74,27 @@ public final class TextEditorActivity extends ActivityFramework {
                 editor.redo();
             return true;
         } else if (itemId == R.id.save) {
-            final CharSequence a = editor.getEditableText();
             if (filePath != null) {
-                try {
-                    if (tempFile != null) {
-                        String b = filePath.toString();
-                        b = b.replace("file:///", "/");
-                        final TextWriter c = new TextWriter(tempFile);
-                        c.write(a);
-                        c.flush();
-                        c.close();
-                        try {
-                            Filex.delete(new Filex(b));
-                        } catch (Exception e) { // ignore
-                        }
-                        Filex.copy(new Filex(tempFile), b);
-                    } else {
-                        final TextWriter b = new TextWriter(getContentResolver().openOutputStream(filePath, "rw"));
-                        b.write(a);
-                        b.flush();
-                        b.close();
-                    }
-                } catch (Exception e) {
-                    E.print(this, e);
-                }
-                Toast.makeText(this, R.string.file_saved_notification, Toast.LENGTH_SHORT).show();
+                if (saveFileData())
+                    Toast.makeText(this, R.string.file_saved_notification, Toast.LENGTH_SHORT).show();
             } else Toast.makeText(this, R.string.unknown_file_path, Toast.LENGTH_SHORT).show();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private boolean saveFileData() {
+        final CharSequence a = editor.getText();
+        try {
+            try (TextWriter b = new TextWriter(getContentResolver().openOutputStream(filePath, "rw"))) {
+                b.write(a);
+                b.flush();
+            }
+            return true;
+        } catch (Exception e) {
+            E.print(this, e);
+            return false;
+        }
     }
 
     private Uri receiveIntentData() throws Exception {
@@ -136,7 +103,7 @@ public final class TextEditorActivity extends ActivityFramework {
             if (i.getAction() != null)
                 if (i.getAction().equals(Intent.ACTION_VIEW)) {
                     return i.getData();
-                } else throw new IllegalArgumentException("Unsupported intent action");
+                } else throw new Exception("Unsupported intent action");
             else throw new Exception("Intent action not specified");
         else throw new Exception("Intent not specified");
     }
