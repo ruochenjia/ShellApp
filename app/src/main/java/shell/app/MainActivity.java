@@ -522,18 +522,18 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     refreshContent();
                 } else {
                     if (f.requireRootAccess())
-                        f = new Filex(Utils.saveTempFile(new FileInputStream((File) f.getTarget())));
+                        f = new Filex(Utils.saveTempFile(f.getPath()));
                     final Filex xf = f;
                     FileExtension fileExtension = FileExtension.CheckFileExtension(xf);
                     if (fileExtension == FileExtension.IMAGE) {
-                        Application.sendIntentData(this, xf.getTarget(), "image/*");
+                        Application.sendIntentData(this, xf.toFile(), "image/*");
                     } else if (fileExtension == FileExtension.MUSIC) {
-                        Application.sendIntentData(this, xf.getTarget(), "audio/*");
+                        Application.sendIntentData(this, xf.toFile(), "audio/*");
                     } else if (fileExtension == FileExtension.TEXT || fileExtension == FileExtension.CODE) {
                         final Intent i = new Intent(this, TextEditorActivity.class);
                         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         i.setAction(Intent.ACTION_VIEW);
-                        i.setDataAndType(Uri.fromFile(xf.getTarget()), "text/plain");
+                        i.setDataAndType(Uri.fromFile(xf.toFile()), "text/plain");
                         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                         startActivity(i);
                     } else if (fileExtension == FileExtension.ZIP_ARCHIVE || fileExtension == FileExtension.ARCHIVE) {
@@ -744,14 +744,14 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                             }, AlertDialog.cancelButton);
                         }
                     } else if (fileExtension == FileExtension.VIDEO) {
-                        Application.sendIntentData(this, xf.getTarget(), "video/*");
+                        Application.sendIntentData(this, xf.toFile(), "video/*");
                     } else if (fileExtension == FileExtension.XAPK) {// unf
                     } else if (fileExtension == FileExtension.HTML) {
-                        Application.sendIntentData(this, xf.getTarget(), "text/html");
+                        Application.sendIntentData(this, xf.toFile(), "text/html");
                     } else if (fileExtension == FileExtension.PDF) {
-                        Application.sendIntentData(this, xf.getTarget(), "application/pdf");
+                        Application.sendIntentData(this, xf.toFile(), "application/pdf");
                     } else if (fileExtension == FileExtension.APK) {
-                        Application.sendIntentData(this, xf.getTarget(), "application/vnd.android.package-archive");
+                        Application.sendIntentData(this, xf.toFile(), "application/vnd.android.package-archive");
                     } else if (fileExtension == FileExtension.COMPRESSED) {
                         final String s = xf.getName();
                         AlertDialog.show(this, s, getResources().getString(R.string.extract_file_confirm_message),
@@ -794,7 +794,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         try {
                             final MimeTypeMap m = MimeTypeMap.getSingleton();
                             final String j = xf.getName().substring(xf.getName().indexOf(".") + 1);
-                            Application.sendIntentData(this, xf.getTarget(), m.getMimeTypeFromExtension(j));
+                            Application.sendIntentData(this, xf.toFile(), m.getMimeTypeFromExtension(j));
                         } catch (Exception e) {
                             E.print(this, e);
                         }
@@ -1056,7 +1056,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                         getResources().getString(R.string.open_with),
                                         null,
                                         ContextCompat.getDrawable(this, R.drawable.open_with),
-                                        a -> Application.sendIntentData(this, f.getTarget(), "*/*")
+                                        a -> Application.sendIntentData(this, f.toFile(), "*/*")
                                 ),
                                 new SelectDialogItem(
                                         getResources().getString(R.string.move),
@@ -1120,7 +1120,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                             final Intent i = new Intent();
                                             i.setAction(Intent.ACTION_SEND);
                                             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            i.setDataAndType(FileProvider.getUriForFile(this, getPackageName() + ".provider", f.getTarget()), "*/*");
+                                            i.setDataAndType(FileProvider.getUriForFile(this, getPackageName() + ".provider", f.toFile()), "*/*");
                                             startActivity(Intent.createChooser(i, f.getName()));
                                         }
                                 ),
@@ -1154,7 +1154,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                         getResources().getString(R.string.open_with),
                                         null,
                                         ContextCompat.getDrawable(this, R.drawable.open_with),
-                                        a -> Application.sendIntentData(this, f.getTarget(), "*/*")
+                                        a -> Application.sendIntentData(this, f.toFile(), "*/*")
                                 ),
                                 new SelectDialogItem(
                                         getResources().getString(R.string.move),
@@ -1218,7 +1218,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                             final Intent i = new Intent();
                                             i.setAction(Intent.ACTION_SEND);
                                             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            i.setDataAndType(FileProvider.getUriForFile(this, getPackageName() + ".provider", f.getTarget()), "*/*");
+                                            i.setDataAndType(FileProvider.getUriForFile(this, getPackageName() + ".provider", f.toFile()), "*/*");
                                             startActivity(Intent.createChooser(i, f.getName()));
                                         }
                                 ),

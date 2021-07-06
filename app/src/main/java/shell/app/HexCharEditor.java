@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 
 import androidx.annotation.Nullable;
 
@@ -26,8 +25,6 @@ public final class HexCharEditor extends ActivityFramework {
         super.onCreate(b);
         codeArea = new CodeArea(this, null);
         setContentView(codeArea);
-        InputMethodManager a = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        a.toggleSoftInput(0, 0);
         try {
             filePath = receiveIntentData();
             try (InputStreamWrapper c = new InputStreamWrapper(getContentResolver().openInputStream(filePath))) {

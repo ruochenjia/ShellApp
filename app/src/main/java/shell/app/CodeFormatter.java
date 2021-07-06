@@ -16,11 +16,9 @@ import androidx.appcompat.widget.AppCompatButton;
 import com.mindrex.android.appsupport.E;
 import com.mindrex.android.appsupport.LinearLayout;
 import com.mindrex.android.appsupport.Utils;
-import com.mindrex.data.DataStream;
 import com.mindrex.shell.R;
-import com.mindrex.util.json.JSONFormatter;
+import org.json.JSONFormatter;
 
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -61,7 +59,7 @@ public final class CodeFormatter extends ActivityFramework {
                             try {
                                 outputString.setText(new JSONFormatter(inputString.toString(), 2).format(JSONFormatter.SORT_DISABLED));
                             } catch (Exception e) {
-                                outputString.setText(R.string.json_invalid_layout);
+                                outputString.setText(e.getMessage());
                             }
                         else outputString.setText(R.string.string_empty_message);
                     } catch (Exception e) {
@@ -74,7 +72,7 @@ public final class CodeFormatter extends ActivityFramework {
                             try {
                                 outputString.setText(new JSONFormatter(inputString.toString(), 2).format(JSONFormatter.SORT_DEFAULT));
                             } catch (Exception e) {
-                                outputString.setText(R.string.json_invalid_layout);
+                                outputString.setText(e.getMessage());
                             }
                         else outputString.setText(R.string.string_empty_message);
                     } catch (Exception e) {
@@ -112,7 +110,7 @@ public final class CodeFormatter extends ActivityFramework {
                             try {
                                 outputString.setText(new JSONFormatter(inputString.toString(), -1).format(JSONFormatter.SORT_DISABLED));
                             } catch (Exception e) {
-                                outputString.setText(R.string.json_invalid_layout);
+                                outputString.setText(e.getMessage());
                             }
                         else {
                             outputString.setText(R.string.string_empty_message);
@@ -128,11 +126,7 @@ public final class CodeFormatter extends ActivityFramework {
                             try {
                                 outputString.setText(new JSONFormatter(inputString.toString(), -1).format(JSONFormatter.SORT_DEFAULT));
                             } catch (Exception e) {
-                                final DataStream a = new DataStream();
-                                e.printStackTrace(new PrintStream(a));
-                                a.flush();
-                                a.close();
-                                outputString.setText(a.toString());
+                                outputString.setText(e.getMessage());
                             }
                         else outputString.setText(R.string.string_empty_message);
                     } catch (Exception e) {
