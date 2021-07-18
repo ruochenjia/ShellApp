@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.mindrex.android.appsupport.LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/codeFormatter"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -12,14 +12,7 @@
         android:layout_alignParentTop="true"
         android:orientation="vertical">
 
-        <!--<shell.texteditor.TextEditor
-            android:id="@+id/codeFormatterInputString"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fillViewport="true" />-->
-
-        <com.mindrex.android.appsupport.LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -37,19 +30,10 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="@string/minify" />
-        </com.mindrex.android.appsupport.LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <!--<shell.texteditor.TextEditor
-            android:id="@+id/codeFormatterOutputString"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fastScrollEnabled="true"
-            android:fillViewport="true" />-->
-
-    </com.mindrex.android.appsupport.LinearLayout>
-
-    <com.mindrex.android.appsupport.LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/codeFormatterBottomBar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -92,5 +76,5 @@
             android:layout_weight="1"
             android:contentDescription="@string/switch_syntax"
             app:srcCompat="@drawable/switch_syntax" />
-    </com.mindrex.android.appsupport.LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </RelativeLayout>

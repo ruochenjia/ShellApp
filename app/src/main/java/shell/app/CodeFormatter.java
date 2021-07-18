@@ -8,18 +8,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.LinearLayoutCompat;
 
 import com.mindrex.android.appsupport.E;
-import com.mindrex.android.appsupport.LinearLayout;
 import com.mindrex.android.appsupport.Utils;
 import com.mindrex.shell.R;
+
 import org.json.JSONFormatter;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 import shell.edit.TextEditor;
@@ -44,13 +43,13 @@ public final class CodeFormatter extends ActivityFramework {
     public final void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.code_formatter);
-        final LinearLayout l = findViewById(R.id.codeFormatter);
+        final LinearLayoutCompat l = findViewById(R.id.codeFormatter);
         minifyButton = findViewById(R.id.minifyCodeButton);
         inputString = new TextEditor(this, null, getHandler());
-        l.addView(inputString, 0, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+        l.addView(inputString, 0, new LinearLayoutCompat.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
         outputString = new TextEditor(this, null, getHandler());
         outputString.setSyntax(TextEditor.Syntax.JAVA);
-        l.addView(outputString, 2, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+        l.addView(outputString, 2, new LinearLayoutCompat.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
         findViewById(R.id.formatCodeButton).setOnClickListener(view -> {
             switch (syntaxType) {
                 case 0: // json
@@ -201,18 +200,5 @@ public final class CodeFormatter extends ActivityFramework {
             default:
                 throw new IllegalArgumentException("Unsupported syntax type");
         }
-    }
-
-    @NonNull
-    @Override
-    public final String toString() {
-        return "CodeFormatter{" +
-                "minifyButton=" + minifyButton +
-                ", inputString=" + inputString +
-                ", outputString=" + outputString +
-                ", switchSyntaxMenu=" + switchSyntaxMenu +
-                ", syntaxType=" + syntaxType +
-                ", syntax=" + Arrays.toString(syntax) +
-                '}';
     }
 }

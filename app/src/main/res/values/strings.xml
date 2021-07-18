@@ -121,4 +121,10 @@
     <string name="block_file">Block File</string>
     <string name="socket_file">Socket File</string>
     <string name="unknown">Unknown</string>
+    <string name="key">Key</string>
+    <string name="scheme">Scheme</string>
+    <string name="created_by">Created by</string>
+    <string name="_import">import</string>
+    <string name="background_service">Background Service</string>
+    <string name="background_service_description">Services are running in background</string>
 </resources>

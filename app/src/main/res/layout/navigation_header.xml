@@ -5,255 +5,286 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_gravity="left|center_vertical"
-        android:minHeight="?attr/actionBarSize"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="center"
         android:background="@color/app_theme"
-        android:gravity="start"
+        android:gravity="center"
         android:orientation="horizontal">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/navigationHeaderLogo"
             android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentLeft="true"
             android:gravity="center"
             app:srcCompat="@drawable/logo" />
 
         <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="wrap_content"
-            android:layout_height="45dp"
-            android:layout_toEndOf="@id/navigationHeaderLogo"
-            android:layout_toRightOf="@id/navigationHeaderLogo"
+            android:layout_height="match_parent"
             android:fontFamily="@font/title"
             android:gravity="center"
             android:text="@string/app_name_short"
             android:textColor="@color/white"
             android:textSize="24sp" />
-    </RelativeLayout>
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/storagePartitionInternal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:orientation="horizontal">
+
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal"
-            app:srcCompat="@drawable/storage_partition_internal"
-            android:gravity="center"/>
+            android:gravity="center"
+            app:srcCompat="@drawable/storage_partition_internal" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:orientation="vertical">
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/internal_storage"
-                android:textSize="16sp"/>
+                android:textSize="16sp" />
+
             <ProgressBar
                 android:id="@+id/storagePartitionInternalProgressBar"
-                android:progressBackgroundTint="@color/contents"
-                android:progressTint="@color/teal_700"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:progressBackgroundTint="@color/contents"
+                android:progressTint="@color/teal_700" />
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/storagePartitionInternalInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/contents"/>
+                android:textColor="@color/contents"
+                android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/storagePartitionExternal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:orientation="horizontal">
+
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal"
-            app:srcCompat="@drawable/storage_partition_external"
-            android:gravity="center"/>
+            android:gravity="center"
+            app:srcCompat="@drawable/storage_partition_external" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:orientation="vertical">
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/external_sdcard"
-                android:textSize="16sp"/>
+                android:textSize="16sp" />
+
             <ProgressBar
                 android:id="@+id/storagePartitionExternalProgressBar"
-                android:progressBackgroundTint="@color/contents"
-                android:progressTint="@color/teal_700"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:progressBackgroundTint="@color/contents"
+                android:progressTint="@color/teal_700" />
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/storagePartitionExternalInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/contents"/>
+                android:textColor="@color/contents"
+                android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/storagePartitionRoot"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:orientation="horizontal">
+
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal"
-            app:srcCompat="@drawable/storage_partitions"
-            android:gravity="center"/>
+            android:gravity="center"
+            app:srcCompat="@drawable/storage_partitions" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:orientation="vertical">
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/root_partition"
-                android:textSize="16sp"/>
+                android:textSize="16sp" />
+
             <ProgressBar
                 android:id="@+id/storagePartitionRootProgressBar"
-                android:progressBackgroundTint="@color/contents"
-                android:progressTint="@color/teal_700"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:progressBackgroundTint="@color/contents"
+                android:progressTint="@color/teal_700" />
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/storagePartitionRootInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/contents"/>
+                android:textColor="@color/contents"
+                android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/storagePartitionData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:orientation="horizontal">
+
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal"
-            app:srcCompat="@drawable/storage_partitions"
-            android:gravity="center"/>
+            android:gravity="center"
+            app:srcCompat="@drawable/storage_partitions" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:orientation="vertical">
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/data_partition"
-                android:textSize="16sp"/>
+                android:textSize="16sp" />
+
             <ProgressBar
                 android:id="@+id/storagePartitionDatarogressBar"
-                android:progressBackgroundTint="@color/contents"
-                android:progressTint="@color/teal_700"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:progressBackgroundTint="@color/contents"
+                android:progressTint="@color/teal_700" />
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/storagePartitionDataInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/contents"/>
+                android:textColor="@color/contents"
+                android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/storagePartitionCache"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:orientation="horizontal">
+
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal"
-            app:srcCompat="@drawable/storage_partitions"
-            android:gravity="center"/>
+            android:gravity="center"
+            app:srcCompat="@drawable/storage_partitions" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:orientation="vertical">
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/cache_partition"
-                android:textSize="16sp"/>
+                android:textSize="16sp" />
+
             <ProgressBar
                 android:id="@+id/storagePartitionCacheProgressBar"
-                android:progressBackgroundTint="@color/contents"
-                android:progressTint="@color/teal_700"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:progressBackgroundTint="@color/contents"
+                android:progressTint="@color/teal_700" />
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/storagePartitionCacheInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/contents"/>
+                android:textColor="@color/contents"
+                android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/storagePartitionSystem"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:orientation="horizontal">
+
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal"
-            app:srcCompat="@drawable/storage_partitions"
-            android:gravity="center"/>
+            android:gravity="center"
+            app:srcCompat="@drawable/storage_partitions" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:orientation="vertical">
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/system_partition"
-                android:textSize="16sp"/>
+                android:textSize="16sp" />
+
             <ProgressBar
                 android:id="@+id/storagePartitionSystemProgressBar"
-                android:progressBackgroundTint="@color/contents"
-                android:progressTint="@color/teal_700"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:progressBackgroundTint="@color/contents"
+                android:progressTint="@color/teal_700" />
+
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/storagePartitionSystemInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/contents"/>
+                android:textColor="@color/contents"
+                android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

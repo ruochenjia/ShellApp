@@ -1,13 +1,13 @@
 #include <jni.h>
 #include "socket.h"
+//#include "stdobjs.h"
 #include <fstream>
-#include <utime.h>
+//#include <utime.h>
 #include <vector>
 #include <filesystem>
 
 namespace fs = std::__fs::filesystem;
-
-using namespace std;
+typedef std::string string;
 
 extern "C" {
 void
@@ -17,18 +17,19 @@ Java_com_mindrex_io_NativeFileSystem_copyFile(JNIEnv *env, __unused jobject claz
     const string b1 = env->GetStringUTFChars(b, (jboolean *) false);
     try {
         if (fs::exists(b1))
-            throw runtime_error("Destination file already exists");
+            throw std::runtime_error("Destination file already exists");
         else if (fs::exists(a1)) {
             if (fs::is_directory(a1))
                 fs::copy(a1, b1);
             else if (fs::is_symlink(a1))
                 fs::copy_symlink(a1, b1);
             else fs::copy_file(a1, b1);
-        } else throw runtime_error("Source file does not exist");
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+        } else throw std::runtime_error("Source file does not exist");
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
 }
+
 jobjectArray
 Java_com_mindrex_io_NativeFileSystem_listChildren(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
@@ -42,11 +43,12 @@ Java_com_mindrex_io_NativeFileSystem_listChildren(JNIEnv *env, __unused jobject 
         for (int i = 0; i < a.size(); i++)
             env->SetObjectArrayElement(b, i, env->NewStringUTF(a.at(i).c_str()));
         return b;
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
     return nullptr;
 }
+
 void
 Java_com_mindrex_io_NativeFileSystem_deleteFile(JNIEnv *env, __unused jobject clazz, jstring s) {
     const string a = env->GetStringUTFChars(s, (jboolean *) false);
@@ -56,12 +58,13 @@ Java_com_mindrex_io_NativeFileSystem_deleteFile(JNIEnv *env, __unused jobject cl
                 fs::remove_all(a);
             } else if (fs::is_regular_file(a) || fs::is_symlink(a)) {
                 fs::remove(a);
-            } else throw runtime_error("Unsupported file type");
-        } else throw runtime_error("Target file does not exist");
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+            } else throw std::runtime_error("Unsupported file type");
+        } else throw std::runtime_error("Target file does not exist");
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
 }
+
 void
 Java_com_mindrex_io_NativeFileSystem_renameFile(JNIEnv *env, __unused jobject clazz, jstring a,
                                                 jstring b) {
@@ -69,14 +72,15 @@ Java_com_mindrex_io_NativeFileSystem_renameFile(JNIEnv *env, __unused jobject cl
     const string b1 = env->GetStringUTFChars(b, (jboolean *) false);
     try {
         if (!fs::exists(a1))
-            throw runtime_error("Source file does not exist");
+            throw std::runtime_error("Source file does not exist");
         else if (fs::exists(b1))
-            throw runtime_error("Destination file already exists");
+            throw std::runtime_error("Destination file already exists");
         else fs::rename(a1, b1);
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
 }
+
 void
 Java_com_mindrex_io_NativeFileSystem_createSymlink(JNIEnv *env, __unused jobject clazz, jstring a,
                                                    jstring b) {
@@ -84,18 +88,19 @@ Java_com_mindrex_io_NativeFileSystem_createSymlink(JNIEnv *env, __unused jobject
     const string b1 = env->GetStringUTFChars(b, (jboolean *) false);
     try {
         if (!fs::exists(a1))
-            throw runtime_error("Source file does not exist");
+            throw std::runtime_error("Source file does not exist");
         else if (fs::exists(b1))
-            throw runtime_error("Destination file already exists");
+            throw std::runtime_error("Destination file already exists");
         else {
             if (fs::is_directory(a1))
                 fs::create_directory_symlink(a1, b1);
             else fs::create_symlink(a1, b1);
         }
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
 }
+
 void
 Java_com_mindrex_io_NativeFileSystem_createHardLink(JNIEnv *env, __unused jobject clazz, jstring a,
                                                     jstring b) {
@@ -103,62 +108,67 @@ Java_com_mindrex_io_NativeFileSystem_createHardLink(JNIEnv *env, __unused jobjec
     const string b1 = env->GetStringUTFChars(b, (jboolean *) false);
     try {
         if (!fs::exists(a1))
-            throw runtime_error("Source file does not exist");
+            throw std::runtime_error("Source file does not exist");
         else if (fs::exists(b1))
-            throw runtime_error("Destination file already exists");
+            throw std::runtime_error("Destination file already exists");
         else fs::create_hard_link(a1, b1);
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
 }
+
 void
 Java_com_mindrex_io_NativeFileSystem_createDirectory(JNIEnv *env, __unused jobject clazz,
                                                      jstring s) {
     const string a = env->GetStringUTFChars(s, (jboolean *) false);
     try {
         if (fs::exists(a))
-            throw runtime_error("Target file already exists");
+            throw std::runtime_error("Target file already exists");
         else fs::create_directories(a);
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
 }
+
 void
 Java_com_mindrex_io_NativeFileSystem_createFile(JNIEnv *env, __unused jobject clazz, jstring s) {
     const string a = env->GetStringUTFChars(s, (jboolean *) false);
     try {
         if (fs::exists(a))
-            throw runtime_error("Target file already exists");
+            throw std::runtime_error("Target file already exists");
         else std::ofstream(a).close();
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
 }
+
 void
 Java_com_mindrex_io_NativeFileSystem_createSocketFile(JNIEnv *env, __unused jobject clazz,
                                                       jstring s) {
     try {
         skt::createSocket(env->GetStringUTFChars(s, (jboolean *) false));
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
 }
+
 jboolean
 Java_com_mindrex_io_NativeFileSystem_exists(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
         return fs::exists(env->GetStringUTFChars(s, (jboolean *) false));
-    } catch (const exception &e) {
+    } catch (const std::exception &e) {
         return false;
     }
 }
+
 jint
 Java_com_mindrex_io_NativeFileSystem_getFilePermission(JNIEnv *env, __unused jobject clazz,
                                                        jstring s) {
     try {
         const fs::perms p = fs::status(env->GetStringUTFChars(s, (jboolean *) false)).permissions();
         return (int) p;
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
     return -1;
 }
@@ -167,8 +177,8 @@ jboolean
 Java_com_mindrex_io_NativeFileSystem_isSymlink(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
         return fs::is_symlink(env->GetStringUTFChars(s, (jboolean *) false));
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
     return false;
 }
@@ -177,8 +187,8 @@ jboolean
 Java_com_mindrex_io_NativeFileSystem_isDirectory(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
         return fs::is_directory(env->GetStringUTFChars(s, (jboolean *) false));
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
     return false;
 }
@@ -187,8 +197,8 @@ jboolean
 Java_com_mindrex_io_NativeFileSystem_isFile(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
         return fs::is_regular_file(env->GetStringUTFChars(s, (jboolean *) false));
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
     return false;
 }
@@ -197,8 +207,8 @@ jboolean
 Java_com_mindrex_io_NativeFileSystem_isBlockFile(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
         return fs::is_block_file(env->GetStringUTFChars(s, (jboolean *) false));
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
     return false;
 }
@@ -207,8 +217,8 @@ jboolean
 Java_com_mindrex_io_NativeFileSystem_isSocketFile(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
         return fs::is_socket(env->GetStringUTFChars(s, (jboolean *) false));
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
     return false;
 }
@@ -217,8 +227,8 @@ jlong
 Java_com_mindrex_io_NativeFileSystem_getFileSize(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
         return fs::file_size(env->GetStringUTFChars(s, (jboolean *) false));
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
     return -1;
 }
@@ -237,20 +247,26 @@ jlong Java_com_mindrex_io_NativeFileSystem_getFileLastModified(JNIEnv *env, __un
         return env->CallLongMethod(c, env->GetMethodID(env->FindClass("java/io/FileSystem"),
                                                        "getLastModifiedTime", "(Ljava/io/File;)J"),
                                    b);
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
-    return (uint) -1l;
+    return -1;
 }
 
 void Java_com_mindrex_io_NativeFileSystem_setFileLastModified(JNIEnv *env, __unused jobject clazz,
                                                               jstring s, jlong j) {
-    jclass a = env->FindClass("java/io/File");
-    jobject b = env->NewObject(a, env->GetMethodID(a, "<init>", "(Ljava/lang/String;)V"), s);
-    jobject c = env->GetStaticObjectField(a,
-                                          env->GetStaticFieldID(a, "fs", "Ljava/io/FileSystem;"));
-    env->CallBooleanMethod(c, env->GetMethodID(env->FindClass("java/io/FileSystem"),
-                                               "setLastModifiedTime", "(Ljava/io/File;J)Z"), b, j);
+    try {
+        jclass a = env->FindClass("java/io/File");
+        jobject b = env->NewObject(a, env->GetMethodID(a, "<init>", "(Ljava/lang/String;)V"), s);
+        jobject c = env->GetStaticObjectField(a,
+                                              env->GetStaticFieldID(a, "fs",
+                                                                    "Ljava/io/FileSystem;"));
+        env->CallBooleanMethod(c, env->GetMethodID(env->FindClass("java/io/FileSystem"),
+                                                   "setLastModifiedTime", "(Ljava/io/File;J)Z"), b,
+                               j);
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
+    }
 }
 
 void Java_com_mindrex_io_NativeFileSystem_setFilePermission(JNIEnv *env, __unused jobject clazz,
@@ -258,8 +274,8 @@ void Java_com_mindrex_io_NativeFileSystem_setFilePermission(JNIEnv *env, __unuse
     try {
         fs::permissions(env->GetStringUTFChars(s, (jboolean *) false), (fs::perms) i,
                         fs::perm_options::replace);
-    } catch (const exception &e) {
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"), e.what());
+    } catch (const std::exception &e) {
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
 }
 
@@ -267,7 +283,7 @@ void
 Java_com_mindrex_io_NativeFileSystem_setFileOwner(JNIEnv *env, __unused jobject clazz, jstring s,
                                                   jint a, jint b) {
     if (chown(env->GetStringUTFChars(s, (jboolean *) false), a, b) == -1)
-        env->ThrowNew(env->FindClass("com/mindrex/gm/NativeInterfaceException"),
+        env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"),
                       "Cannot run chmod");
 }
 

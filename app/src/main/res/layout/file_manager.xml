@@ -38,14 +38,14 @@
                 app:layout_behavior="@string/appbar_scrolling_view_behavior" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <com.mindrex.android.appsupport.LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/fileManagerBottomBar"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_alignParentBottom="true"
             android:orientation="vertical">
 
-            <com.mindrex.android.appsupport.LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/mainNavigationBar"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -95,9 +95,9 @@
                     android:layout_weight="1"
                     android:contentDescription="@string/parent_directory"
                     app:srcCompat="@drawable/up_dir" />
-            </com.mindrex.android.appsupport.LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <com.mindrex.android.appsupport.LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/selectionNavigationBar"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -148,9 +148,9 @@
                     android:layout_weight="1"
                     android:contentDescription="@string/menu"
                     app:srcCompat="@drawable/more" />
-            </com.mindrex.android.appsupport.LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <com.mindrex.android.appsupport.LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/copyFileNavigationBar"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -172,8 +172,8 @@
                     android:layout_weight="1"
                     android:contentDescription="@string/paste"
                     android:text="@string/paste" />
-            </com.mindrex.android.appsupport.LinearLayout>
-        </com.mindrex.android.appsupport.LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </RelativeLayout>
 
     <com.google.android.material.navigation.NavigationView

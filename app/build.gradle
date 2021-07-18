@@ -2,7 +2,7 @@ apply plugin: "com.android.application"
 
 android {
     compileSdkVersion "android-S"
-    buildToolsVersion "30.0.3"
+    buildToolsVersion '30.0.3'
     ndkVersion "23.0.7421159 rc5"
 
     defaultConfig {
@@ -11,9 +11,10 @@ android {
         targetSdkVersion 28
         versionCode 48
         versionName "TestDev5"
-        multiDexEnabled false
+        multiDexEnabled true
         useLibrary "android.test.mock"
         vectorDrawables.useSupportLibrary = true
+        signingConfig signingConfigs.debug
     }
 
     buildTypes {
@@ -35,8 +36,13 @@ android {
     }
 
     compileOptions {
+        encoding "GBK"
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets.main {
+        jniLibs.srcDir "../../../Android/dalvik-sdk/rt/lib"
     }
 
     externalNativeBuild {
@@ -49,8 +55,9 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation fileTree(include: ['*.jar'], dir: '../../../Android/dalvik-sdk/rt/lib/ext')
     implementation "androidx.room:room-runtime:2.3.0"
-    implementation "org.apache.commons:commons-compress:1.20"
+    implementation 'org.apache.commons:commons-compress:1.21'
     implementation "androidx.multidex:multidex:2.0.1"
     implementation "androidx.appcompat:appcompat:1.3.0"
     implementation "androidx.constraintlayout:constraintlayout:2.0.4"

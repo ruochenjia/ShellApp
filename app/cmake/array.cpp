@@ -1,6 +1,6 @@
+#include "stdobjs.h"
 #include <jni.h>
 #include <vector>
-#include "stdobjs.h"
 
 static std::vector<jobject> data;
 
@@ -86,5 +86,13 @@ void Java_com_mindrex_data_ArrayHolder_finalize(JNIEnv *env, jobject obj) {
     jfieldID a = env->GetFieldID(_, "id", "J");
     const jlong b = env->GetLongField(obj, a);
     data.at(b) = nullptr; // release memory
+}
+
+jint Java_com_mindrex_data_Array_length(JNIEnv *env, __unused jclass clazz, jobject obj) {
+    return env->GetArrayLength((jarray) obj);
+}
+
+jobject Java_com_mindrex_data_Array_get(JNIEnv *env, __unused jclass clazz, jobject obj, jint a) {
+    return env->GetObjectArrayElement((jobjectArray) obj, a);
 }
 }

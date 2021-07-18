@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.18.1)
 project("cmaketest")
 add_library(native-lib SHARED
+        android.cpp
+        android.h
         array.cpp
-        array0.cpp
         context.cpp
         io.cpp
         socket.h
