@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <resources>
-    <item name="extract_here" type="string">Extract here</item>
-    <item name="extract_to_archive_name" type="string">Extract to ./\u003cArchive Name\u003e</item>
-    <item name="extract_to_path" type="string">Extract to path</item>
     <item name="a" type="id" />
     <item name="b" type="id" />
     <item name="c" type="id" />
     <item name="d" type="id" />
     <item name="e" type="id" />
+    <item name="extract_here" type="string">Extract here</item>
+    <item name="extract_to_archive_name" type="string">Extract to ./\u003cArchive Name\u003e</item>
+    <item name="extract_to_path" type="string">Extract to path</item>
     <item name="f" type="id" />
     <item name="view" type="string">View</item>
 </resources>

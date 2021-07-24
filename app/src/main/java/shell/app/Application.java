@@ -30,27 +30,31 @@ public final class Application extends SupportApplication {
             ((Method) a).setAccessible(true);
             Sfx.ass((boolean) ((Method) a).invoke(null, "native-lib"));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Could not load native library", e);
         }
     }
 
     public Application() throws Exception {
     }
 
+    private static Boolean firstRun = null;
+
     static boolean firstRun() {
-        final File a = new File(Storage.APPLICATION_DATA, ".first_run");
-        if (a.exists())
-            return false;
-        else {
-            assert a.createNewFile();
-            return true;
-        }
+        if (firstRun == null) {
+            final File a = new File(Storage.APPLICATION_DATA, ".first_run");
+            if (a.exists())
+                return firstRun = false;
+            else {
+                assert a.createNewFile();
+                return firstRun = true;
+            }
+        } else return firstRun;
     }
 
     @Override
     public final void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-        Shell.enableVerboseLogging = BuildConfig.DEBUG;
+        Shell.enableVerboseLogging = debug;
         Shell.setDefaultBuilder(Shell.Builder.create()
                 .setFlags(Shell.FLAG_REDIRECT_STDERR)
                 .setTimeout(10)
@@ -58,7 +62,7 @@ public final class Application extends SupportApplication {
     }
 
     @Override
-    public void onCreate() {
+    public final void onCreate() {
         super.onCreate();
         try {
             final String a = getFilesDir() + "/tr+data";

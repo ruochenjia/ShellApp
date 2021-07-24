@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="11">
-      <module name="Browser.app" target="15" />
-      <module name="Browser.appsupport" target="15" />
+    <bytecodeTargetLevel target="1.7">
+      <module name="Browser.app" target="16" />
+      <module name="Browser.appsupport" target="16" />
+      <module name="Browser.io" target="1.8" />
+      <module name="libraries.Browser.appsupport" target="16" />
+      <module name="libraries.Browser.io" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

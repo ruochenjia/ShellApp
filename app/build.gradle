@@ -1,9 +1,9 @@
 apply plugin: "com.android.application"
 
 android {
-    compileSdkVersion "android-S"
+    compileSdk 31
     buildToolsVersion '30.0.3'
-    ndkVersion "23.0.7421159 rc5"
+    ndkVersion '23.0.7530507 rc6'
 
     defaultConfig {
         applicationId "com.mindrex.shell"
@@ -11,7 +11,7 @@ android {
         targetSdkVersion 28
         versionCode 48
         versionName "TestDev5"
-        multiDexEnabled true
+        multiDexEnabled false
         useLibrary "android.test.mock"
         vectorDrawables.useSupportLibrary = true
         signingConfig signingConfigs.debug
@@ -41,10 +41,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    sourceSets.main {
-        jniLibs.srcDir "../../../Android/dalvik-sdk/rt/lib"
-    }
-
     externalNativeBuild {
         cmake {
             path "cmake/CMakeLists.txt"
@@ -55,7 +51,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation fileTree(include: ['*.jar'], dir: '../../../Android/dalvik-sdk/rt/lib/ext')
     implementation "androidx.room:room-runtime:2.3.0"
     implementation 'org.apache.commons:commons-compress:1.21'
     implementation "androidx.multidex:multidex:2.0.1"

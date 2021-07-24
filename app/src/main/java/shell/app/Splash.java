@@ -7,9 +7,11 @@ public final class Splash {
             "Never give up once you started",
             "Spending Time != Quality",
             "Learning would never make you sad",
-            "Everyday is a new fresh beginning of you life"
+            "Everyday is a new fresh beginning of you life",
+            null
     };
     private static final CharSequence firstRun = "A simple root-access file manager for android";
+    private static final CharSequence dom = "https://www.example.com/test/test.html";
 
     public static CharSequence getRandom() {
         if (Application.firstRun())

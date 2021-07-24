@@ -302,4 +302,9 @@ Java_com_mindrex_io_NativeFileSystem_getFileGroup(JNIEnv *env, __unused jobject 
     stat(a, &attr);
     return attr.st_gid;
 }
+
+jstring
+Java_com_mindrex_io_NativeFileSystem_getAbsolutePath(__unused JNIEnv *env, __unused jobject clazz, jstring s) {
+    return s;
+}
 }
