@@ -18,13 +18,13 @@
         android:hint="@string/file_name"
         android:inputType="textNoSuggestions" />
 
-    <com.mindrex.android.appsupport.LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <com.mindrex.android.appsupport.LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -42,9 +42,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:spinnerMode="dropdown" />
-        </com.mindrex.android.appsupport.LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <com.mindrex.android.appsupport.LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -62,17 +62,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:spinnerMode="dropdown" />
-        </com.mindrex.android.appsupport.LinearLayout>
-    </com.mindrex.android.appsupport.LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 
-    <com.mindrex.android.appsupport.LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <com.mindrex.android.appsupport.LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -90,9 +90,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:spinnerMode="dropdown" />
-        </com.mindrex.android.appsupport.LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <com.mindrex.android.appsupport.LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -113,6 +113,6 @@
                 android:hint="@string/buffer_size"
                 android:inputType="number"
                 android:text="8192" />
-        </com.mindrex.android.appsupport.LinearLayout>
-    </com.mindrex.android.appsupport.LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.appcompat.widget.LinearLayoutCompat>

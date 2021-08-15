@@ -9,6 +9,7 @@
         android:icon="@drawable/settings"
         android:title="@string/settings" />
     <item
-        android:id="@+id/command"
-        android:title="@string/execute_command"/>
+        android:id="@+id/about"
+        android:icon="@drawable/about"
+        android:title="@string/about" />
 </menu>

@@ -10,31 +10,26 @@ import androidx.core.content.FileProvider;
 
 import com.mindrex.android.appsupport.Storage;
 import com.mindrex.android.appsupport.SupportApplication;
+import com.mindrex.gm.GmSystem;
 import com.mindrex.io.File;
 import com.mindrex.io.FileSystem;
-import com.mindrex.io.IO;
-import com.mindrex.shell.BuildConfig;
-import com.mindrex.util.Sfx;
+import com.mindrex.io.Path;
 import com.topjohnwu.superuser.Shell;
-
-import java.lang.reflect.Method;
 
 @SuppressWarnings("RedundantSuppression")
 public final class Application extends SupportApplication {
     static {
-        Object a = IO.clazz.getClassLoader();
-        Sfx.nonnull(a);
         try {
-            a = ((ClassLoader) a).loadClass("com.mindrex.gm.GmSystem");
-            a = ((Class<?>) a).getDeclaredMethod("loadLib", String.class);
-            ((Method) a).setAccessible(true);
-            Sfx.ass((boolean) ((Method) a).invoke(null, "native-lib"));
+            sInit();
         } catch (Exception e) {
-            throw new RuntimeException("Could not load native library", e);
+            throw new IllegalStateException("\u1000\u2000\ud8ff", e);
         }
+        System.loadLibrary("native-lib");
     }
 
-    public Application() throws Exception {
+    private static void sInit() throws Exception {
+        final Path a = new Path("/");
+
     }
 
     private static Boolean firstRun = null;
@@ -54,6 +49,7 @@ public final class Application extends SupportApplication {
     @Override
     public final void attachBaseContext(Context base) {
         super.attachBaseContext(base);
+        GmSystem.init();
         Shell.enableVerboseLogging = debug;
         Shell.setDefaultBuilder(Shell.Builder.create()
                 .setFlags(Shell.FLAG_REDIRECT_STDERR)

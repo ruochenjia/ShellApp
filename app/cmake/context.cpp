@@ -13,8 +13,8 @@ Java_com_mindrex_android_appsupport_SupportContext_getDefaultContext(JNIEnv *env
 }
 
 void Java_com_mindrex_gm_GmSystem_crs(__unused JNIEnv *env, __unused jclass clazz) {
-    env->ThrowNew(env->FindClass("jvm/runtime/InterruptedRuntimeError"), "\ue000");
-    //throw " n u l l ";
+    //env->ThrowNew(env->FindClass("jvm/runtime/InterruptedRuntimeError"), "\ue000");
+    throw " n u l l ";
 }
 
 // reflection

@@ -37,12 +37,12 @@ public final class CodeFormatter extends ActivityFramework {
     };
 
     public CodeFormatter() {
+        super(R.layout.code_formatter);
     }
 
     @Override
     public final void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.code_formatter);
         final LinearLayoutCompat l = findViewById(R.id.codeFormatter);
         minifyButton = findViewById(R.id.minifyCodeButton);
         inputString = new TextEditor(this, null, getHandler());

@@ -29,13 +29,11 @@
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <uses-permission android:name="android.permission.BIND_CONTROLS" />
-    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -119,16 +117,17 @@
         <service
             android:name="shell.app.RestartAppService"
             android:enabled="false"
-            android:exported="false"
             android:process=":restart"
             android:stopWithTask="false" />
         <service
             android:name="shell.app.UpdateService"
-            android:exported="false"
+            android:enabled="false"
             android:process=":update"
             android:stopWithTask="false" />
 
-        <activity android:name="shell.app.UpdateService$activity" />
+        <activity
+            android:name="shell.app.UpdateService$activity"
+            android:enabled="false" />
 
         <activity
             android:name="shell.app.TextEditorActivity"
@@ -152,7 +151,7 @@
         <activity
             android:name="shell.app.HexCharEditor"
             android:exported="true"
-            android:label="Hex Char Editor">
+            android:label="@string/hex_editor">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -163,6 +162,22 @@
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="shell.app.ApkInstaller"
+            android:exported="true"
+            android:label="Apk Installer">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:host="*" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/vnd.android.package-archive" />
             </intent-filter>
         </activity>
         <activity

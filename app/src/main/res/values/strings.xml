@@ -4,7 +4,7 @@
     <string name="access_denied_message">Access is denied</string>
     <string name="apk_extracted_message">Apk successfully extracted to $path</string>
     <string name="apk_extractor">APK Extractor</string>
-    <string name="app_name">\u000cԜіոցSеаrсһer\u007f\u0012\u0020</string>
+    <string name="app_name">\u000cԜіոցSеаrсһer\u0012\u0020</string>
     <string name="app_name_short">WingSearcher</string>
     <string name="application_information">Application Information</string>
     <string name="application_package_name_description">Package name: $package_name</string>
@@ -126,4 +126,13 @@
     <string name="uuid_generator">UUID Generator</string>
     <string name="web_browser">Web Browser</string>
     <string name="your_random_uuid">Your random UUID: </string>
+    <string name="hex_editor">Hex Editor</string>
+    <string name="install">Install</string>
+    <string name="resolve_intent_failed">Could not resolve input stream</string>
+    <string name="apk_installed">Apk Installed</string>
+    <string name="apk_install_failed">Apk Install Failed\n\n$err_code</string>
+    <string name="preparing">Preparing…</string>
+    <string name="installing">Installing…</string>
+    <string name="install_confirm_message">Do you want to install this application?</string>
+    <string name="about">About</string>
 </resources>

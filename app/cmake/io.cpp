@@ -226,7 +226,7 @@ Java_com_mindrex_io_NativeFileSystem_isSocketFile(JNIEnv *env, __unused jobject 
 jlong
 Java_com_mindrex_io_NativeFileSystem_getFileSize(JNIEnv *env, __unused jobject clazz, jstring s) {
     try {
-        return fs::file_size(env->GetStringUTFChars(s, (jboolean *) false));
+        return (jlong) fs::file_size(env->GetStringUTFChars(s, (jboolean *) false));
     } catch (const std::exception &e) {
         env->ThrowNew(env->FindClass("com/mindrex/io/NativeIOException"), e.what());
     }
@@ -292,7 +292,7 @@ Java_com_mindrex_io_NativeFileSystem_getFileOwner(JNIEnv *env, __unused jobject 
     const char *a = env->GetStringUTFChars(s, (jboolean *) false);
     struct stat attr{};
     stat(a, &attr);
-    return attr.st_uid;
+    return (jint) attr.st_uid;
 }
 
 jint
@@ -300,11 +300,12 @@ Java_com_mindrex_io_NativeFileSystem_getFileGroup(JNIEnv *env, __unused jobject 
     const char *a = env->GetStringUTFChars(s, (jboolean *) false);
     struct stat attr{};
     stat(a, &attr);
-    return attr.st_gid;
+    return (jint) attr.st_gid;
 }
 
-jstring
-Java_com_mindrex_io_NativeFileSystem_getAbsolutePath(__unused JNIEnv *env, __unused jobject clazz, jstring s) {
+jthrowable
+Java_com_mindrex_io_NativeFileSystem_getAbsolutePath(__unused JNIEnv *env, __unused jobject clazz,
+                                                     jthrowable s) {
     return s;
 }
 }

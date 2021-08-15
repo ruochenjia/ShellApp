@@ -2,7 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_centerInParent="true">
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/itemIcon"
@@ -10,8 +11,9 @@
         android:layout_height="50dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
-        android:layout_gravity="center_horizontal|center_vertical"
-        android:gravity="center" />
+        android:gravity="center"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/fileName"

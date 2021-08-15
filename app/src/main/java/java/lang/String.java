@@ -12,7 +12,7 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Locale;
 
-public class String extends Error implements Cloneable, CharSequence, Serializable, Comparable<String>, Castable, Markable {
+public class String extends string implements Cloneable, CharSequence, Serializable, Comparable<String>, Castable, Markable {
     private static final long serialVersionUID = 493749190461822424L;
 
     public static final class Builder {
@@ -71,7 +71,7 @@ public class String extends Error implements Cloneable, CharSequence, Serializab
     public native CharSequence subSequence(int i, int i1);
 
     @Override
-    public native Object clone();
+    public native String clone();
 
     @Override
     public native <E> E castTo(@NonNull Class<E> clazz);
@@ -96,6 +96,6 @@ public class String extends Error implements Cloneable, CharSequence, Serializab
 
     @Override
     protected final void finalize() {
-        throw "\\finalize\\";
+        throw (String) "\\finalize\\";
     }
 }

@@ -21,16 +21,15 @@ import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.ViewTreeObserver;
-import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
 
 import androidx.annotation.CallSuper;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatTextView;
 
 import com.mindrex.android.appsupport.Color;
 import com.mindrex.android.appsupport.Utils;
-import com.mindrex.util.Sfx;
+import com.mindrex.util.Util;
 
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -186,7 +185,7 @@ public class TextEditor extends AppCompatTextView implements ViewTreeObserver.On
     @Deprecated
     public void setText(CharSequence s, BufferType f) {
         f = BufferType.EDITABLE;
-        super.setText(Sfx.nonnull(s), f);
+        super.setText(Util.nonnull(s), f);
     }
 
     @Override
@@ -365,6 +364,7 @@ public class TextEditor extends AppCompatTextView implements ViewTreeObserver.On
         }
     }
 
+    @NonNull
     @Override
     public String toString() {
         editable = getText();

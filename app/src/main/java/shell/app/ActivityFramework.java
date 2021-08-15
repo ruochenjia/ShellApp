@@ -1,12 +1,10 @@
 package shell.app;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
@@ -15,7 +13,7 @@ import androidx.appcompat.app.ActionBar;
 
 import com.mindrex.android.appsupport.Storage;
 import com.mindrex.android.appsupport.SupportActivity;
-import com.mindrex.util.Sfx;
+import com.mindrex.util.Util;
 
 // Notice: This file might have been changed from original.
 
@@ -27,8 +25,6 @@ public abstract class ActivityFramework extends SupportActivity {
     public static final String cacheDirectory;
     public static final String systemDirectory;
 
-    public static String downloadFolderPath;
-
     static {
         storagePath = Storage.STORAGE_INTERNAL;
         externalSdPath = Storage.STORAGE_EXTERNAL;
@@ -36,11 +32,14 @@ public abstract class ActivityFramework extends SupportActivity {
         dataDirectory = Storage.DIRECTORY_DATA;
         cacheDirectory = Storage.DIRECTORY_CACHE;
         systemDirectory = Storage.DIRECTORY_SYSTEM;
-        downloadFolderPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
     }
 
     private Boolean isTaskRoot = null;
     private ActionBar actionBar = null;
+
+    public ActivityFramework(int state) {
+        super(state);
+    }
 
     public ActivityFramework() {
         super(0);
@@ -71,7 +70,7 @@ public abstract class ActivityFramework extends SupportActivity {
         if (actionBar != null)
             return actionBar;
         final ActionBar a = super.getSupportActionBar();
-        Sfx.nonnull(a);
+        Util.nonnull(a);
         return a;
     }
 

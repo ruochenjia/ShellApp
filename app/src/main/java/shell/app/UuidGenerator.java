@@ -16,12 +16,12 @@ public final class UuidGenerator extends ActivityFramework {
     private AppCompatTextView uuidDisplay;
 
     public UuidGenerator() {
+        super(R.layout.uuid_generator);
     }
 
     @Override
     public final void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.uuid_generator);
         uuidDisplay = findViewById(R.id.uuidDisplay);
         uuidDisplay.setText(UUID.randomUUID().toString());
         findViewById(R.id.generateRandomUuid).setOnClickListener(view -> uuidDisplay.setText(UUID.randomUUID().toString()));

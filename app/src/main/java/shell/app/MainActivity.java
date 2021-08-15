@@ -6,6 +6,10 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -13,7 +17,6 @@ import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
 import android.os.StatFs;
 import android.text.Editable;
@@ -45,6 +48,7 @@ import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.AppCompatRadioButton;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -60,14 +64,11 @@ import com.mindrex.android.appsupport.CommandUtils;
 import com.mindrex.android.appsupport.DialogButton;
 import com.mindrex.android.appsupport.E;
 import com.mindrex.android.appsupport.Filex;
-import com.mindrex.android.appsupport.LinearLayout;
 import com.mindrex.android.appsupport.SelectDialog;
 import com.mindrex.android.appsupport.SelectDialogItem;
+import com.mindrex.android.appsupport.Storage;
 import com.mindrex.android.appsupport.Thumbnail;
 import com.mindrex.android.appsupport.Utils;
-import com.mindrex.android.appsupport.htmlviewer.HtmlViewer;
-import com.mindrex.android.debugger.Log;
-import com.mindrex.annotation.TestOnly;
 import com.mindrex.data.Array;
 import com.mindrex.gm.GmSystem;
 import com.mindrex.io.ArchiveEntry;
@@ -79,20 +80,21 @@ import com.mindrex.io.File;
 import com.mindrex.io.FileSystem;
 import com.mindrex.io.IOUtils;
 import com.mindrex.io.KeyUtils;
+import com.mindrex.io.Path;
 import com.mindrex.io.SevenZInput;
 import com.mindrex.io.SevenZOutput;
 import com.mindrex.io.TarInput;
 import com.mindrex.io.TarOutput;
-import com.mindrex.io.TextWriter;
 import com.mindrex.io.ZipEntry;
 import com.mindrex.io.ZipInput;
 import com.mindrex.io.ZipOutput;
 import com.mindrex.shell.R;
 import com.mindrex.util.FilePermission;
-import com.mindrex.util.Sfx;
+import com.mindrex.util.Util;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -100,13 +102,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
-
-import dalvik.system.DexFile;
 
 // Notice: This file might have been changed from original.
 
-public final class MainActivity extends ActivityFramework implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, TextWatcher, Thread.UncaughtExceptionHandler, Handler.Callback {
+public final class MainActivity extends ActivityFramework implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, TextWatcher {
+    private static final SimpleDateFormat timeFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", GmSystem.defaultLocale);
+
     private ListView listView;
     private FileAdaptor adaptor;
     private View contentView, mainNavigationBar, selectionNavigationBar, copyFileNavigationBar;
@@ -144,9 +145,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         @Override
         public final void run() {
             final Filex v = new Filex(currentFile.toString());
-            if (new File(v.getPath()).canRead() || CommandUtils.hasRootAccess) {
+            if (canRead(v) || CommandUtils.hasRootAccess)
                 fileList = v.list();
-            } else {
+            else {
                 RootRequiredDialog.show(MainActivity.this);
                 fileList = new Filex[0];
             }
@@ -160,58 +161,58 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 final Filex f = fileList[i];
                 b.name = f.getName();
                 if (f.isDirectory()) {
-                    b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.folder);
-                    b.description = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", GmSystem.defaultLocale).format(f.lastModified());
+                    b.icon = Bitmaps.folder;
+                    b.description = timeFormat.format(f.lastModified());
                     folderCount++;
                 } else {
                     switch (FileExtension.CheckFileExtension(f)) {
                         case IMAGE:
                             try {
-                                b.icon = new BitmapDrawable(getResources(), Thumbnail.createImageThumbnail(f, (byte) 100));
+                                b.icon = new BitmapDrawable(getResources(), Thumbnail.createImageThumbnail(f.toString(), (byte) 100));
                             } catch (Exception e) {
-                                b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.image_file);
+                                b.icon = Bitmaps.imageFile;
                             }
                             break;
                         case MUSIC:
-                            b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.music_file);
+                            b.icon = Bitmaps.musicFile;
                             break;
                         case TEXT:
-                            b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.text_document);
+                            b.icon = Bitmaps.textDocument;
                             break;
                         case CODE:
-                            b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.code_file);
+                            b.icon = Bitmaps.codeFile;
                             break;
                         case ZIP_ARCHIVE:
                         case ARCHIVE:
-                            b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.archive_file);
+                            b.icon = Bitmaps.archiveFile;
                             break;
                         case VIDEO:
-                            b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.video_file);
+                            b.icon = Bitmaps.videoFile;
                             break;
                         case APK:
                             try {
                                 final PackageManager c = getPackageManager();
-                                final ApplicationInfo d = c.getPackageArchiveInfo(f.getPath(), 0).applicationInfo;
+                                final ApplicationInfo d = c.getPackageArchiveInfo(f.toString(), 0).applicationInfo;
                                 b.icon = c.getApplicationIcon(d);
                             } catch (Exception e) {
-                                b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.apk_file);
+                                b.icon = Bitmaps.apkFile;
                             }
                             break;
                         case XAPK:
-                            b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.apk_bundle);
+                            b.icon = Bitmaps.apkBundle;
                             break;
                         case HTML:
-                            b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.html_file);
+                            b.icon = Bitmaps.htmlFile;
                             break;
                         case DEFAULT:
                         case UNKNOWN:
-                            b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.file);
+                            b.icon = Bitmaps.file;
                             break;
                         default:
-                            b.icon = ContextCompat.getDrawable(MainActivity.this, R.drawable.file_unknown);
+                            b.icon = Bitmaps.unknownFile;
                             break;
                     }
-                    b.description = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", GmSystem.defaultLocale).format(f.lastModified()) + " " + new FileSizeTransform(f.size()).toString();
+                    b.description = timeFormat.format(f.lastModified()) + " " + new FileSizeTransform(f.size());
                     fileCount++;
                 }
                 a[i] = b;
@@ -245,7 +246,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         }
                     }
                     final Filex a = new Filex(origins.get(i));
-                    final Filex b = new Filex(currentFile.toString(), a);
+                    final Filex b = new Filex(currentFile.toString(), a.getName());
                     if (movingFile) {
                         if (!b.exists()) try {
                             a.moveTo(b);
@@ -269,24 +270,63 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     };
 
     public MainActivity() {
+        new Thread() {
+            public final void run() {
+                try {
+                    run0();
+                } catch (Exception e) {
+                    throw new Error("\ufeff", e);
+                }
+            }
+
+            public final void run0() throws Exception {
+                final File a = new Path(Storage.STORAGE_INTERNAL, ".thumbnailcreator").getFile();
+                if (!a.exists()) {
+                    if (!a.mkdir())
+                        throw new IOException("Failed to create directory " + a.path.toString());
+                }
+                File b = new Path(a.path, "input.png").getFile();
+                if (b.exists() && b.canRead()) {
+                    final Bitmap c = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(b.getPath()), 256, 256, true);
+                    c.setHasAlpha(true);
+                    final Canvas d = new Canvas(c);
+                    final Paint e = new Paint();
+                    e.setStyle(Paint.Style.FILL);
+                    e.setTextSize(32);
+                    e.setColor(Color.WHITE.toInt());
+                    d.drawText("Hello World", 24, 24, e);
+                    e.setStyle(Paint.Style.STROKE);
+                    e.setColor(Color.BLACK.toInt());
+                    e.setStrokeWidth(1.5f);
+                    d.drawText("Hello World", 24, 24, e);
+                    c.compress(Bitmap.CompressFormat.PNG, 100, new File(a.path, "output" + System.currentTimeMillis() + ".png").getOutputStream());
+                    c.recycle();
+                }
+                b = new Path(a.path, "inputlow.png").getFile();
+                if (b.exists() && b.canRead()) {
+                    final Bitmap c = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(b.getPath()), 128, 128, true);
+                    c.setHasAlpha(true);
+                    final Canvas d = new Canvas(c);
+                    final Paint e = new Paint();
+                    e.setStyle(Paint.Style.FILL);
+                    e.setTextSize(16);
+                    e.setColor(Color.WHITE.toInt());
+                    d.drawText("Hello World", 12, 12, e);
+                    e.setStyle(Paint.Style.STROKE);
+                    e.setColor(Color.BLACK.toInt());
+                    e.setStrokeWidth(1.5f);
+                    d.drawText("Hello World", 12, 12, e);
+                    c.compress(Bitmap.CompressFormat.PNG, 40, new File(a.path, "outputlow" + System.currentTimeMillis() + ".png").getOutputStream());
+                    c.recycle();
+                }
+            }
+        }.start();
     }
 
     @Override
     public final void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.file_manager);
-
-        final AlertDialog a = new AlertDialog(this);
-        a.setTitle("Title");
-        a.setMessage("Message");
-        a.setView(new HtmlViewer(this, null));
-        a.setPositiveButton("PositiveButton", (b, c) -> b.dismiss());
-        a.setNegativeButton("NegativeButton", (b, c) -> {
-        });
-        a.setNeutralButton("NeutralButton", (b, c) -> {
-        });
-        a.show();
-
         listView = findViewById(R.id.mainContent);
         contentView = findViewById(R.id.fileManagerContentView);
         mainNavigationBar = findViewById(R.id.mainNavigationBar);
@@ -348,7 +388,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         toggle.syncState();
         drawerLayout.addDrawerListener(toggle);
         actionBar = getSupportActionBar();
-
         currentFile.setValue(storagePath);
     }
 
@@ -358,9 +397,11 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             case 0:
                 copyFileNavigationBar.setVisibility(View.GONE);
                 mainNavigationBar.setVisibility(View.VISIBLE);
-                if (origins.size() > 0) origins.clear();
+                if (origins.size() > 0)
+                    origins.clear();
             case 1:
-                dialog.dismiss();
+                if (dialog != null)
+                    dialog.dismiss();
                 handler.postDelayed(this::refreshContent, 200);
                 return true;
             default:
@@ -369,37 +410,10 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     }
 
     @Override
-    public final void run() {
-        if (!CommandUtils.hasRootAccess)
-            Toast.makeText(this, R.string.no_root_layout, Toast.LENGTH_SHORT).show();
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
-            Toast.makeText(this, R.string.unsupported_system_version_warning, Toast.LENGTH_LONG).show();
-        initializeStoragePartitionContents();
-        if (!new File(getExternalFilesDir(null), ".registered_classes").exists())
-            new Thread() {
-                @Override
-                public final void run() {
-                    try {
-                        verifyDexFile();
-                    } catch (Exception e) {
-                        throw new Error(e);
-                    }
-                }
-
-                @Override
-                public final synchronized void start() {
-                    setPriority(3);
-                    setDaemon(true);
-                    setUncaughtExceptionHandler(MainActivity.this);
-                    super.start();
-                }
-            }.start();
-    }
-
-    @Override
     public final void onResume() {
         super.onResume();
-        if (!fileManagerInitialized) initializeFileManager();
+        if (!fileManagerInitialized)
+            initializeFileManager();
         else refreshContent();
         contentView.setVisibility(View.VISIBLE);
     }
@@ -437,7 +451,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     @Override
     public final boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
-        return super.onCreateOptionsMenu(menu);
+        return Boolean.parseBoolean(new String(new char[]{0x74, 0x72, 0x75, 0x65}));
     }
 
     @Override
@@ -485,24 +499,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             // getPackageManager().setComponentEnabledSetting(new ComponentName(this, Application.class), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
             Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show();
             return true;
-        } else if (i == R.id.command) {
-
-            return true;
         } else if (toggle.onOptionsItemSelected(item))
             return true;
         else return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected final void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == -1 /*RESULT_OK*/ && data != null) {
-            final Uri uri = data.getData();
-            if (uri != null && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            }
-        }
     }
 
     @Override
@@ -514,13 +513,13 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     public final void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (selectedCount == 0)
             try {
-                Filex f = new Filex(fileList[position]);
+                Filex f = fileList[position];
                 if (f.isDirectory()) {
                     currentFile.setValue(f.getPath());
                     refreshContent();
                 } else {
                     if (f.requireRootAccess())
-                        f = new Filex(Utils.saveTempFile(f.getPath()));
+                        f = new Filex(Utils.saveTempFile(f.toString()));
                     final Filex xf = f;
                     FileExtension fileExtension = FileExtension.CheckFileExtension(xf);
                     if (fileExtension == FileExtension.IMAGE) {
@@ -554,7 +553,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 this.dialog.show();
                                                 handler.post(() -> {
                                                     try {
-                                                        final ArchiveInput c = new SevenZInput(new FileInputStream(xf.getPath()));
+                                                        final ArchiveInput c = new SevenZInput(xf.getInputStream());
                                                         c.extract(currentFile.toString());
                                                         c.close();
                                                     } catch (Exception e) {
@@ -581,8 +580,8 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                             else d.delete();
                                                             d.mkdir();
                                                         }
-                                                        final ArchiveInput c = new SevenZInput(new FileInputStream(xf.getPath()));
-                                                        c.extract(d.getPath());
+                                                        final ArchiveInput c = new SevenZInput(xf.getInputStream());
+                                                        c.extract(d.toString());
                                                     } catch (Exception e) {
                                                         E.print(this, e);
                                                     }
@@ -595,7 +594,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                             null,
                                             ContextCompat.getDrawable(this, R.drawable.package_extractor),
                                             a -> {
-                                                origins.add(xf.getPath());
+                                                origins.add(xf.toString());
                                                 cancelButton.callOnClick();
                                                 mainNavigationBar.setVisibility(View.GONE);
                                                 copyFileNavigationBar.setVisibility(View.VISIBLE);
@@ -622,7 +621,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 this.dialog.show();
                                                 handler.post(() -> {
                                                     try {
-                                                        final ArchiveInput c = new TarInput(new FileInputStream(xf.getPath()));
+                                                        final ArchiveInput c = new TarInput(xf.getInputStream());
                                                         c.extract(currentFile.toString());
                                                         c.close();
                                                     } catch (Exception e) {
@@ -649,8 +648,8 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                             else d.delete();
                                                             d.mkdir();
                                                         }
-                                                        final ArchiveInput c = new TarInput(new FileInputStream(xf.getPath()));
-                                                        c.extract(d.getPath());
+                                                        final ArchiveInput c = new TarInput(xf.getInputStream());
+                                                        c.extract(d.toString());
                                                     } catch (Exception e) {
                                                         E.print(this, e);
                                                     }
@@ -663,7 +662,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                             null,
                                             ContextCompat.getDrawable(this, R.drawable.package_extractor),
                                             a -> {
-                                                origins.add(xf.getPath());
+                                                origins.add(xf.toString());
                                                 cancelButton.callOnClick();
                                                 mainNavigationBar.setVisibility(View.GONE);
                                                 copyFileNavigationBar.setVisibility(View.VISIBLE);
@@ -690,7 +689,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 this.dialog.show();
                                                 handler.post(() -> {
                                                     try {
-                                                        final ArchiveInput c = new ZipInput(new FileInputStream(xf.getPath()));
+                                                        final ArchiveInput c = new ZipInput(xf.getInputStream());
                                                         c.extract(currentFile.toString());
                                                         c.close();
                                                     } catch (Exception e) {
@@ -717,8 +716,8 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                             else d.delete();
                                                             d.mkdir();
                                                         }
-                                                        final ArchiveInput c = new ZipInput(new FileInputStream(xf.getPath()));
-                                                        c.extract(d.getPath());
+                                                        final ArchiveInput c = new ZipInput(xf.getInputStream());
+                                                        c.extract(d.toString());
                                                     } catch (Exception e) {
                                                         E.print(this, e);
                                                     }
@@ -731,7 +730,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                             null,
                                             ContextCompat.getDrawable(this, R.drawable.package_extractor),
                                             a -> {
-                                                origins.add(xf.getPath());
+                                                origins.add(xf.toString());
                                                 cancelButton.callOnClick();
                                                 mainNavigationBar.setVisibility(View.GONE);
                                                 copyFileNavigationBar.setVisibility(View.VISIBLE);
@@ -761,23 +760,23 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 try {
                                                     ArchiveType archiveType = ArchiveType.fromFileExtension(s);
                                                     if (archiveType == ArchiveType.BROTLI) {
-                                                        CompressUtils.extractBrotli(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractBrotli(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.BZIP2) {
-                                                        CompressUtils.extractBz2(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractBz2(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.GZIP) {
-                                                        CompressUtils.extractGz(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractGz(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.LZ4) {
-                                                        CompressUtils.extractLz4(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractLz4(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.PACK200) {
-                                                        CompressUtils.extractPack200(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractPack200(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.SNAPPY) {
-                                                        CompressUtils.extractSnappy(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractSnappy(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.XZ) {
-                                                        CompressUtils.extractXz(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractXz(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.Z) {
-                                                        CompressUtils.extractZ(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractZ(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.ZSTD) {
-                                                        CompressUtils.extractZst(new FileInputStream(xf.getPath()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractZst(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else {
                                                         throw new IllegalArgumentException("Unsupported file type: " + s);
                                                     }
@@ -818,11 +817,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     public final void afterTextChanged(Editable s) {
     }
 
-    @Override
-    public final void uncaughtException(@NonNull Thread t, @NonNull Throwable e) {
-        Log.c(t, e);
-    }
-
     final void refreshContent() {
         swipeRefreshLayout.setRefreshing(true);
         try {
@@ -845,7 +839,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
 
     private Object tmp;
 
-    @SuppressWarnings("EqualsBetweenInconvertibleTypes")
+
     @SuppressLint("NonConstantResourceId")
     final void initializeFileManager() {
         origins = new ArrayList<>();
@@ -906,6 +900,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             a.show();
         });
         upDirButton.setOnClickListener(view -> {
+            //noinspection EqualsBetweenInconvertibleTypes
             if (currentFile.equals(FileSystem.separator) || FileSystem.parseParent(currentFile).length() == 0) {
                 if (doubleBackToExitPressedOnce)
                     finish();
@@ -916,7 +911,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 }
             } else
                 try {
-                    currentFile.setValue(Sfx.nonnull(new Filex(currentFile.toString()).getParentPath()));
+                    currentFile.setValue(Util.nonnull(new Filex(currentFile.toString()).getParentPath()));
                     refreshContent();
                 } catch (Exception e) {
                     E.print(this, e);
@@ -944,7 +939,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         });
         copyFileButton.setOnClickListener(view -> {
             for (int i = 0; i < selection.length; i++) {
-                if (selection[i]) origins.add(fileList[i].getPath());
+                if (selection[i]) origins.add(fileList[i].toString());
             }
             cancelButton.callOnClick();
             mainNavigationBar.setVisibility(View.GONE);
@@ -984,7 +979,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         break;
                     }
                 }
-                final Filex f = (Filex) Sfx.nonnull(tmp);
+                final Filex f = (Filex) Util.nonnull(tmp);
                 if (f.isDirectory()) {
                     SelectDialog.show(this, getResources().getString(R.string.menu), new SelectDialogItem[]{
                             new SelectDialogItem(
@@ -993,7 +988,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                     ContextCompat.getDrawable(this, R.drawable.move),
                                     a -> {
                                         for (int i = 0; i < selection.length; i++)
-                                            if (selection[i]) origins.add(fileList[i].getPath());
+                                            if (selection[i]) origins.add(fileList[i].toString());
                                         cancelButton.callOnClick();
                                         mainNavigationBar.setVisibility(View.GONE);
                                         copyFileNavigationBar.setVisibility(View.VISIBLE);
@@ -1063,7 +1058,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                         a -> {
                                             for (int l = 0; l < selection.length; l++)
                                                 if (selection[l])
-                                                    origins.add(fileList[l].getPath());
+                                                    origins.add(fileList[l].toString());
                                             cancelButton.callOnClick();
                                             mainNavigationBar.setVisibility(View.GONE);
                                             copyFileNavigationBar.setVisibility(View.VISIBLE);
@@ -1150,7 +1145,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                         a -> {
                                             for (int l = 0; l < selection.length; l++)
                                                 if (selection[l])
-                                                    origins.add(fileList[l].getPath());
+                                                    origins.add(fileList[l].toString());
                                             cancelButton.callOnClick();
                                             mainNavigationBar.setVisibility(View.GONE);
                                             copyFileNavigationBar.setVisibility(View.VISIBLE);
@@ -1230,7 +1225,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                     ContextCompat.getDrawable(this, R.drawable.move),
                                     a -> {
                                         for (int i = 0; i < selection.length; i++)
-                                            if (selection[i]) origins.add(fileList[i].getPath());
+                                            if (selection[i]) origins.add(fileList[i].toString());
                                         cancelButton.callOnClick();
                                         mainNavigationBar.setVisibility(View.GONE);
                                         copyFileNavigationBar.setVisibility(View.VISIBLE);
@@ -1269,18 +1264,18 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         final String s = a.getName();
                         if (s.toLowerCase().endsWith(".7z")) {
                             final Filex b = new Filex(currentFile.toString(), s.replace(".7z", ""));
-                            final SevenZInput c = new SevenZInput(new FileInputStream(a.getPath()));
-                            c.extract(b.getPath());
+                            final SevenZInput c = new SevenZInput(a.getInputStream());
+                            c.extract(b.toString());
                             c.close();
                         } else if (s.toLowerCase().endsWith(".tar")) {
                             final Filex b = new Filex(currentFile.toString(), s.replace(".tar", ""));
-                            final TarInput c = new TarInput(new FileInputStream(a.getPath()));
-                            c.extract(b.getPath());
+                            final TarInput c = new TarInput(a.getInputStream());
+                            c.extract(b.toString());
                             c.close();
                         } else if (s.toLowerCase().endsWith(".zip")) {
                             final Filex b = new Filex(currentFile.toString(), s.replace(".zip", ""));
-                            final ZipInput c = new ZipInput(a.getPath());
-                            c.extract(b.getPath());
+                            final ZipInput c = new ZipInput(a.getInputStream());
+                            c.extract(b.toString());
                             c.close();
                         } else throw new Exception("Invalid extension");
                     } catch (Exception e) {
@@ -1339,33 +1334,42 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             }
         });
         swipeRefreshLayout.setOnRefreshListener(this::refreshContent);
-        handler.post(this);
+        if (!CommandUtils.hasRootAccess)
+            Toast.makeText(this, R.string.no_root_layout, Toast.LENGTH_SHORT).show();
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+            Toast.makeText(this, R.string.unsupported_system_version_warning, Toast.LENGTH_LONG).show();
+        initializeStoragePartitionContents();
         fileManagerInitialized = true;
     }
+
+    public static transient volatile float MF_MIN = 00.00000f;
+    public static transient volatile float MF_VAL = 03.14159f;
+
+    private static final transient long serialVersionUID = 0;
 
     final void showSignatureDialog(Filex f) {
         final AlertDialog a = new AlertDialog(this);
         a.setTitle(R.string.sign);
-        final View v = getLayoutInflater().inflate(R.layout.signature_dialog, null, false);
+        final View v = getLayoutInflater().inflate(R.layout.signature_dialog, getRootView(), false);
         final AppCompatEditText b = v.findViewById(R.id.key);
         final AppCompatEditText c = v.findViewById(R.id.scheme);
         final AppCompatEditText d = v.findViewById(R.id.createdBy);
-        b.setText(new SpannableStringBuilder("\ud800default"));
-        c.setText(new SpannableStringBuilder("\uf8ffV1+V2+V3"));
-        d.setText(new SpannableStringBuilder("\ufeffJarSigner"));
+        b.setText(new SpannableStringBuilder("default"));
+        c.setText(new SpannableStringBuilder("V1+V2+V3"));
+        d.setText(new SpannableStringBuilder("JarSigner"));
         a.setView(v);
         a.setButtons(new DialogButton(DialogButton.POSITIVE, getResources().getString(R.string.selection_confirm), e -> {
-            final File s = new File(getFilesDir(), "key");
+            final File s = new File((File) getFilesDir(), "key");
             assert s.exists() || s.mkdir();
             try {
-                String g = Sfx.nonnull(b.getText()).toString();
-                if (g.equalsIgnoreCase("\ud800default"))
+                String g = Util.nonnull(b.getText()).toString();
+                if (g.equalsIgnoreCase("default"))
                     g = null;
                 else g = s + File.separator + g;
-                new SignJar(f.getPath(), f.removeExtension().getPath() + "_signed" + f.getExtension(), "androi", KeyUtils.loadPrivateKey(g == null ? null : new FileInputStream(g + ".pk8")), KeyUtils.generateCertificate(g == null ? null : new FileInputStream(g + ".x509.pem")))
-                        .setCreatedBy(Sfx.nonnull(d.getText()).toString())
+                new SignJar(f.toString(), f.removeExtension().getPath() + "_signed" + f.getExtension(), "androi", KeyUtils.loadPrivateKey(g == null ? null : new FileInputStream(g + ".pk8")), KeyUtils.generateCertificate(g == null ? null : new FileInputStream(g + ".x509.pem")))
+                        .setCreatedBy(Util.nonnull(d.getText()).toString())
                         .setMinSdkVersion(16)
-                        .setSignatureScheme(Sfx.nonnull(c.getText()).toString())
+                        .setSignatureScheme(Util.nonnull(c.getText()).toString())
                         .sign();
             } catch (Exception g) {
                 E.print(this, g);
@@ -1466,7 +1470,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                             final ZipOutput i = new ZipOutput(new FileOutputStream(h));
                             final ZipEntry[] j = new ZipEntry[f.length];
                             for (int k = 0; k < j.length; k++) {
-                                final String l = f[k].getPath();
+                                final String l = f[k].toString();
                                 final ZipEntry m = new ZipEntry(l, l.replace(currentFile.toString(), ""));
                                 j[k] = m;
                             }
@@ -1514,13 +1518,13 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         try {
             if (f.isDirectory())
                 c = getResources().getString(R.string.directory);
-            else if (FileSystem.nativeFs.isSymlink(f.getPath()))
+            else if (FileSystem.nativeFs.isSymlink(f.toString()))
                 c = getResources().getString(R.string.symbolic_link);
-            else if (FileSystem.nativeFs.isBlockFile(f.getPath()))
+            else if (FileSystem.nativeFs.isBlockFile(f.toString()))
                 c = getResources().getString(R.string.block_file);
-            else if (FileSystem.nativeFs.isSocketFile(f.getPath()))
+            else if (FileSystem.nativeFs.isSocketFile(f.toString()))
                 c = getResources().getString(R.string.socket_file);
-            else if (FileSystem.nativeFs.isFile(f.getPath()))
+            else if (FileSystem.nativeFs.isFile(f.toString()))
                 c = getResources().getString(R.string.file);
             else c = getResources().getString(R.string.unknown);
         } catch (Exception e) {
@@ -1530,19 +1534,19 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         ((AppCompatTextView) b.findViewById(R.id.size)).setText(new FileSizeTransform(f.size()).toString());
         ((AppCompatTextView) b.findViewById(R.id.modifiedTime)).setText(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", GmSystem.defaultLocale).format(f.lastModified()));
         try {
-            c = FilePermission.init(FileSystem.nativeFs.getFilePermission(f.getPath())).toString();
+            c = FilePermission.init(FileSystem.nativeFs.getFilePermission(f.toString())).toString();
         } catch (Exception e) {
             c = getResources().getString(R.string.unknown);
         }
         ((AppCompatTextView) b.findViewById(R.id.permissions)).setText(c);
         try {
-            c = String.valueOf(FileSystem.nativeFs.getFileOwner(f.getPath()));
+            c = String.valueOf(FileSystem.nativeFs.getFileOwner(f.toString()));
         } catch (Exception e) {
             c = getResources().getString(R.string.unknown);
         }
         ((AppCompatTextView) b.findViewById(R.id.uid)).setText(c);
         try {
-            c = String.valueOf(FileSystem.nativeFs.getFileGroup(f.getPath()));
+            c = String.valueOf(FileSystem.nativeFs.getFileGroup(f.toString()));
         } catch (Exception e) {
             c = getResources().getString(R.string.unknown);
         }
@@ -1602,7 +1606,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         if (externalSdPath != null) {
             final Filex f = new Filex(externalSdPath);
             if (f.exists()) {
-                final MemoryStatus a = new MemoryStatus(f.getPath());
+                final MemoryStatus a = new MemoryStatus(f.toString());
                 storagePartitionExternalInfo.setText(s.replace("$available_memory", a.getFinalAvailableMemorySize()).replace("$total_memory", a.getFinalTotalMemorySize()));
                 storagePartitionExternalProgressBar.setProgress((100 - a.getMemoryUsagePercentage()));
             } else storagePartitionExternal.setVisibility(View.GONE);
@@ -1611,7 +1615,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             final MemoryStatus c = new MemoryStatus(rootDirectory);
             storagePartitionRootInfo.setText(s.replace("$available_memory", c.getFinalAvailableMemorySize()).replace("$total_memory", c.getFinalTotalMemorySize()));
             storagePartitionRootProgressBar.setProgress((100 - c.getMemoryUsagePercentage()));
-        } else storagePartitionRoot.setVisibility(LinearLayout.GONE);
+        } else storagePartitionRoot.setVisibility(LinearLayoutCompat.GONE);
         if (new Filex(dataDirectory).exists()) {
             final MemoryStatus d = new MemoryStatus(dataDirectory);
             storagePartitionDataInfo.setText(s.replace("$available_memory", d.getFinalAvailableMemorySize()).replace("$total_memory", d.getFinalTotalMemorySize()));
@@ -1733,28 +1737,14 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         c.show();
     }
 
-    @TestOnly
-    final void verifyDexFile() throws Exception {
-        final ZipInput a = new ZipInput(getPackageManager().getApplicationInfo(getPackageName(), 0).sourceDir);
-        final Filex b = new Filex(Utils.getTempDir(), UUID.randomUUID().toString());
-        a.extract(b.getPath());
-        final ArrayList<Filex> c = new ArrayList<>();
-        for (Filex f : Sfx.nonnull(b.list())) {
-            final String s = f.getName();
-            if (s.startsWith("classes") && s.endsWith(".dex")) c.add(f);
+    private boolean canRead(Filex f) {
+        final File a = new File((Path) f.getPath());
+        if (a.canRead()) {
+            if (a.isDirectory())
+                return a.list() != null;
+            else return true;
         }
-        if (c.isEmpty()) throw new Exception("No dex files found");
-        else {
-            final TextWriter d = new TextWriter(new File(getExternalFilesDir(null), ".registered_classes"));
-            final StringBuilder h = new StringBuilder();
-            for (Filex f : c) {
-                final DexFile g = new DexFile(f.getPath());
-                for (String s : Collections.list(g.entries())) h.append(s).append("\n");
-            }
-            d.write(h.toString());
-            d.flush();
-            d.close();
-        }
+        return false;
     }
 
     private static final class FileData {
@@ -1810,14 +1800,13 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             if (convertView == null)
                 convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.file_manager_items, parent, false);
             ViewHolder h = (ViewHolder) convertView.getTag();
-            if (h == null) {
-                h = new ViewHolder(convertView.findViewById(R.id.itemIcon), convertView.findViewById(R.id.fileName), convertView.findViewById(R.id.fileInfo));
-                convertView.setTag(h);
-            }
-            h.fileIcon.setImageDrawable(data[position].icon);
-            h.fileName.setText(data[position].name);
-            h.fileInfo.setText(data[position].description);
-            convertView.setBackground(data[position].selected ? selectedDrawable : defaultDrawable);
+            if (h == null)
+                convertView.setTag(h = new ViewHolder(convertView.findViewById(R.id.itemIcon), convertView.findViewById(R.id.fileName), convertView.findViewById(R.id.fileInfo)));
+            final FileData a = data[position];
+            h.fileIcon.setImageDrawable(a.icon);
+            h.fileName.setText(a.name);
+            h.fileInfo.setText(a.description);
+            convertView.setBackground(a.selected ? selectedDrawable : defaultDrawable);
             return convertView;
         }
 
@@ -1948,6 +1937,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             yottabytes = zettabytes >= 1024 ? zettabytes / 1024d : 0;
         }
 
+        @NonNull
         @Override
         public final String toString() {
             final DecimalFormat a = new DecimalFormat("0.00");

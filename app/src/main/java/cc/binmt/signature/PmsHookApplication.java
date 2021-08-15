@@ -8,7 +8,7 @@ import android.content.pm.Signature;
 import android.util.Base64;
 import android.util.Log;
 
-import com.mindrex.util.Sfx;
+import com.mindrex.util.Util;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -42,7 +42,7 @@ public final class PmsHookApplication extends Application implements InvocationH
             Integer flag = (Integer) args[1];
             if ((flag & GET_SIGNATURES) != 0 && appPkgName.equals(pkgName)) {
                 PackageInfo info = (PackageInfo) method.invoke(base, args);
-                Sfx.nonnull(info).signatures = new Signature[this.sign.length];
+                Util.nonnull(info).signatures = new Signature[this.sign.length];
                 for (int i = 0; i < info.signatures.length; i++) {
                     info.signatures[i] = new Signature(this.sign[i]);
                 }

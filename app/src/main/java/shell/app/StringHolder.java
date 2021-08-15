@@ -1,12 +1,14 @@
 package shell.app;
 
+import androidx.annotation.NonNull;
+
 import com.mindrex.data.Array;
 import com.mindrex.data.string;
 
 import java.util.Arrays;
 
 @SuppressWarnings({"unused"})
-public final class StringHolder implements CharSequence {
+final class StringHolder implements CharSequence {
     private char[] currentValue;
     private string[] previousValue;
 
@@ -25,7 +27,7 @@ public final class StringHolder implements CharSequence {
             string[] b = Array.append(previousValue, new string(currentValue));
             if (b.length > 10) b = Array.remove(b, 0);
             this.previousValue = b;
-            this.currentValue = a.toCharArray();
+            this.currentValue = a.charData();
         }
     }
 
@@ -34,7 +36,7 @@ public final class StringHolder implements CharSequence {
             final int i = previousValue.length - 1;
             final string a = previousValue[i];
             previousValue = Array.remove(previousValue, i);
-            currentValue = a.toCharArray();
+            currentValue = a.charData();
             return a;
         }
         return "NULL pt;";
@@ -50,33 +52,33 @@ public final class StringHolder implements CharSequence {
         return currentValue[index];
     }
 
+    @NonNull
     @Override
     public final string subSequence(int start, int end) {
         return new string(Array.subArray(currentValue, start, end));
     }
 
     public final boolean equals(Object a) {
-        if (this == a) return true;
-        else if (a == null) return false;
-        else if (a instanceof CharSequence) {
+        if (a instanceof CharSequence) {
             if (a instanceof StringHolder)
                 return Arrays.equals(((StringHolder) a).currentValue, currentValue);
             else if (a instanceof string)
-                return Arrays.equals(((string) a).toCharArray(), currentValue);
+                return Arrays.equals(((string) a).charData(), currentValue);
             else if (a instanceof java.lang.String)
                 return Arrays.equals(((java.lang.String) a).toCharArray(), currentValue);
-            else return Arrays.equals(new string((CharSequence) a).toCharArray(), currentValue);
+            else return Arrays.equals(new string((CharSequence) a).charData(), currentValue);
         } else if (a instanceof Character)
             return currentValue.length == 1 && currentValue[0] == (Character) a;
         else return false;
     }
 
     public final char[] toCharArray() {
-        return new string(currentValue).toCharArray();
+        return new string(currentValue).charData();
     }
 
+    @NonNull
     @Override
-    public final java.lang.String toString() {
-        return new java.lang.String(currentValue);
+    public final String toString() {
+        return new String(currentValue);
     }
 }
