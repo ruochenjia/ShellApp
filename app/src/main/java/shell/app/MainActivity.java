@@ -71,7 +71,6 @@ import com.mindrex.android.appsupport.Thumbnail;
 import com.mindrex.android.appsupport.Utils;
 import com.mindrex.data.Array;
 import com.mindrex.gm.GmSystem;
-import com.mindrex.io.ArchiveEntry;
 import com.mindrex.io.ArchiveInput;
 import com.mindrex.io.CompressLevel;
 import com.mindrex.io.CompressMethod;
@@ -85,7 +84,6 @@ import com.mindrex.io.SevenZInput;
 import com.mindrex.io.SevenZOutput;
 import com.mindrex.io.TarInput;
 import com.mindrex.io.TarOutput;
-import com.mindrex.io.ZipEntry;
 import com.mindrex.io.ZipInput;
 import com.mindrex.io.ZipOutput;
 import com.mindrex.shell.R;
@@ -146,7 +144,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         public final void run() {
             final Filex v = new Filex(currentFile.toString());
             if (canRead(v) || CommandUtils.hasRootAccess)
-                fileList = v.list();
+                fileList = v.listFiles();
             else {
                 RootRequiredDialog.show(MainActivity.this);
                 fileList = new Filex[0];
@@ -283,9 +281,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 final File a = new Path(Storage.STORAGE_INTERNAL, ".thumbnailcreator").getFile();
                 if (!a.exists()) {
                     if (!a.mkdir())
-                        throw new IOException("Failed to create directory " + a.path.toString());
+                        throw new IOException("Failed to create directory " + a.getPath());
                 }
-                File b = new Path(a.path, "input.png").getFile();
+                File b = new File(a, "input.png");
                 if (b.exists() && b.canRead()) {
                     final Bitmap c = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(b.getPath()), 256, 256, true);
                     c.setHasAlpha(true);
@@ -299,10 +297,11 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     e.setColor(Color.BLACK.toInt());
                     e.setStrokeWidth(1.5f);
                     d.drawText("Hello World", 24, 24, e);
-                    c.compress(Bitmap.CompressFormat.PNG, 100, new File(a.path, "output" + System.currentTimeMillis() + ".png").getOutputStream());
+                    c.compress(Bitmap.CompressFormat.PNG, 100, new File(a, "output" + System.currentTimeMillis() + ".png").getOutputStream());
                     c.recycle();
+                    b.moveTo(b + ".bak");
                 }
-                b = new Path(a.path, "inputlow.png").getFile();
+                b = new File(a, "inputlow.png");
                 if (b.exists() && b.canRead()) {
                     final Bitmap c = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(b.getPath()), 128, 128, true);
                     c.setHasAlpha(true);
@@ -316,8 +315,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     e.setColor(Color.BLACK.toInt());
                     e.setStrokeWidth(1.5f);
                     d.drawText("Hello World", 12, 12, e);
-                    c.compress(Bitmap.CompressFormat.PNG, 40, new File(a.path, "outputlow" + System.currentTimeMillis() + ".png").getOutputStream());
+                    c.compress(Bitmap.CompressFormat.PNG, 40, new File(a, "outputlow" + System.currentTimeMillis() + ".png").getOutputStream());
                     c.recycle();
+                    b.moveTo(b + ".bak");
                 }
             }
         }.start();
@@ -552,10 +552,8 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                                                 this.dialog.show();
                                                 handler.post(() -> {
-                                                    try {
-                                                        final ArchiveInput c = new SevenZInput(xf.getInputStream());
+                                                    try (ArchiveInput c = new SevenZInput(xf, null)) {
                                                         c.extract(currentFile.toString());
-                                                        c.close();
                                                     } catch (Exception e) {
                                                         E.print(this, e);
                                                     }
@@ -572,15 +570,16 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 this.dialog.show();
                                                 handler.post(() -> {
                                                     try {
-                                                        final Filex d = new Filex(currentFile.toString(), IOUtils.removeFileExtension(xf.getPath()) + "_extracted");
-                                                        if (!d.exists()) d.mkdir();
+                                                        final Filex d = new Filex(IOUtils.removeFileExtension(xf.getPath()) + "_extracted");
+                                                        if (!d.exists())
+                                                            Filex.mkdir(d);
                                                         else if (!d.isDirectory()) {
                                                             if (d.isFile() && d.size() > 0)
-                                                                d.moveTo(d.getPath() + ".bak");
-                                                            else d.delete();
-                                                            d.mkdir();
+                                                                Filex.rename(d, d.getPath() + ".bak");
+                                                            else Filex.delete(d);
+                                                            Filex.mkdir(d);
                                                         }
-                                                        final ArchiveInput c = new SevenZInput(xf.getInputStream());
+                                                        final ArchiveInput c = new SevenZInput(xf, null);
                                                         c.extract(d.toString());
                                                     } catch (Exception e) {
                                                         E.print(this, e);
@@ -620,10 +619,8 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                                                 this.dialog.show();
                                                 handler.post(() -> {
-                                                    try {
-                                                        final ArchiveInput c = new TarInput(xf.getInputStream());
+                                                    try (ArchiveInput c = new TarInput(xf)) {
                                                         c.extract(currentFile.toString());
-                                                        c.close();
                                                     } catch (Exception e) {
                                                         E.print(this, e);
                                                     }
@@ -640,15 +637,16 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 this.dialog.show();
                                                 handler.post(() -> {
                                                     try {
-                                                        final Filex d = new Filex(currentFile.toString(), IOUtils.removeFileExtension(xf.getPath()) + "_extracted");
-                                                        if (!d.exists()) d.mkdir();
+                                                        final Filex d = new Filex(IOUtils.removeFileExtension(xf.getPath()) + "_extracted");
+                                                        if (!d.exists())
+                                                            Filex.mkdir(d);
                                                         else if (!d.isDirectory()) {
                                                             if (d.isFile() && d.size() > 0)
-                                                                d.moveTo(d.getPath() + ".bak");
-                                                            else d.delete();
-                                                            d.mkdir();
+                                                                Filex.rename(d, d.getPath() + ".bak");
+                                                            else Filex.delete(d);
+                                                            Filex.mkdir(d);
                                                         }
-                                                        final ArchiveInput c = new TarInput(xf.getInputStream());
+                                                        final ArchiveInput c = new TarInput(xf);
                                                         c.extract(d.toString());
                                                     } catch (Exception e) {
                                                         E.print(this, e);
@@ -688,10 +686,8 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 this.dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
                                                 this.dialog.show();
                                                 handler.post(() -> {
-                                                    try {
-                                                        final ArchiveInput c = new ZipInput(xf.getInputStream());
+                                                    try (ArchiveInput c = new ZipInput(xf)) {
                                                         c.extract(currentFile.toString());
-                                                        c.close();
                                                     } catch (Exception e) {
                                                         E.print(this, e);
                                                     }
@@ -708,15 +704,15 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 this.dialog.show();
                                                 handler.post(() -> {
                                                     try {
-                                                        final Filex d = new Filex(currentFile.toString(), IOUtils.removeFileExtension(xf.getPath()) + "_extracted");
-                                                        if (!d.exists()) d.mkdir();
+                                                        final Filex d = new Filex(IOUtils.removeFileExtension(xf.getPath()) + "_extracted");
+                                                        if (!d.exists()) Filex.mkdir(d);
                                                         else if (!d.isDirectory()) {
                                                             if (d.isFile() && d.size() > 0)
-                                                                d.moveTo(d.getPath() + ".bak");
-                                                            else d.delete();
-                                                            d.mkdir();
+                                                                Filex.rename(d, d.getPath() + ".bak");
+                                                            else Filex.delete(d);
+                                                            Filex.mkdir(d);
                                                         }
-                                                        final ArchiveInput c = new ZipInput(xf.getInputStream());
+                                                        final ArchiveInput c = new ZipInput(xf);
                                                         c.extract(d.toString());
                                                     } catch (Exception e) {
                                                         E.print(this, e);
@@ -866,7 +862,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     if (!s.equals("")) {
                         final Filex f = new Filex(currentFile.toString(), s);
                         if (!f.exists()) try {
-                            f.mkdir();
+                            Filex.mkdir(f);
                         } catch (Exception e) {
                             E.print(this, e);
                         }
@@ -884,7 +880,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     if (!s.equals("")) {
                         final Filex f = new Filex(currentFile.toString(), s);
                         if (!f.exists()) try {
-                            f.createNewFile();
+                            Filex.createNewFile(f);
                         } catch (Exception e) {
                             E.print(this, e);
                         }
@@ -900,18 +896,19 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             a.show();
         });
         upDirButton.setOnClickListener(view -> {
-            //noinspection EqualsBetweenInconvertibleTypes
-            if (currentFile.equals(FileSystem.separator) || FileSystem.parseParent(currentFile).length() == 0) {
+            //TODO TODO
+            final Path a = new Path(currentFile);
+            if (a.isRoot()) {
                 if (doubleBackToExitPressedOnce)
                     finish();
                 else {
                     doubleBackToExitPressedOnce = true;
                     Toast.makeText(this, R.string.back_key_exit_app_notice, Toast.LENGTH_SHORT).show();
-                    new android.os.Handler().postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
+                    handler.postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
                 }
             } else
                 try {
-                    currentFile.setValue(Util.nonnull(new Filex(currentFile.toString()).getParentPath()));
+                    currentFile.setValue(a.getParent());
                     refreshContent();
                 } catch (Exception e) {
                     E.print(this, e);
@@ -959,7 +956,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         if (selection[i]) {
                             final Filex f = fileList[i];
                             try {
-                                f.delete();
+                                Filex.delete(f);
                             } catch (Exception e) {
                                 E.print(this, e);
                             }
@@ -1214,10 +1211,12 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     }
                 }
             } else {
-                final Filex[] f = new Filex[selection.length];
-                for (int i = 0; i < f.length; i++)
-                    if (selection[i]) f[i] = fileList[i];
+                Filex[] f = new Filex[0];
+                for (int i = 0; i < selection.length; i++)
+                    if (selection[i])
+                        f = Array.append(f, fileList[i]);
                 if (f.length > 0) {
+                    final Filex[] g = f;
                     SelectDialog.show(this, getResources().getString(R.string.menu), new SelectDialogItem[]{
                             new SelectDialogItem(
                                     getResources().getString(R.string.move),
@@ -1237,7 +1236,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                     getResources().getString(R.string.compress),
                                     null,
                                     ContextCompat.getDrawable(this, R.drawable.compress),
-                                    a -> showCompressDialog(f)
+                                    a -> showCompressDialog(g)
                             )
                     }, AlertDialog.cancelButton);
                 }
@@ -1256,25 +1255,24 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         pasteButton.setOnClickListener(view -> {
             if (extractingFile) {
                 dialog = ProgressDialog.show(this, getResources().getString(R.string.extract_file_notice), getResources().getString(R.string.please_wait));
-                this.dialog.show();
+                dialog.show();
                 handler.post(() -> {
-                    // Looper.prepare();
                     try {
                         final Filex a = new Filex(origins.get(0));
                         final String s = a.getName();
                         if (s.toLowerCase().endsWith(".7z")) {
                             final Filex b = new Filex(currentFile.toString(), s.replace(".7z", ""));
-                            final SevenZInput c = new SevenZInput(a.getInputStream());
+                            final SevenZInput c = new SevenZInput(a, null);
                             c.extract(b.toString());
                             c.close();
                         } else if (s.toLowerCase().endsWith(".tar")) {
                             final Filex b = new Filex(currentFile.toString(), s.replace(".tar", ""));
-                            final TarInput c = new TarInput(a.getInputStream());
+                            final TarInput c = new TarInput(a);
                             c.extract(b.toString());
                             c.close();
                         } else if (s.toLowerCase().endsWith(".zip")) {
                             final Filex b = new Filex(currentFile.toString(), s.replace(".zip", ""));
-                            final ZipInput c = new ZipInput(a.getInputStream());
+                            final ZipInput c = new ZipInput(a);
                             c.extract(b.toString());
                             c.close();
                         } else throw new Exception("Invalid extension");
@@ -1342,11 +1340,6 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         fileManagerInitialized = true;
     }
 
-    public static transient volatile float MF_MIN = 00.00000f;
-    public static transient volatile float MF_VAL = 03.14159f;
-
-    private static final transient long serialVersionUID = 0;
-
     final void showSignatureDialog(Filex f) {
         final AlertDialog a = new AlertDialog(this);
         a.setTitle(R.string.sign);
@@ -1402,7 +1395,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 LUtil.index = (byte) position;
                 try {
                     if (f.length > 1)
-                        b.setText(f[0].getParent().getName() + LUtil.archiveFormatExtensions[LUtil.index]);
+                        b.setText(f[0].getParentFile().getName() + LUtil.archiveFormatExtensions[LUtil.index]);
                     else
                         b.setText(f[0].getName() + LUtil.archiveFormatExtensions[LUtil.index]);
                 } catch (Exception l) {
@@ -1459,24 +1452,18 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     final String h = currentFile.toString() + File.separatorChar + s;
                     try {
                         if (LUtil.index == 0) { // 7zip
-                            final SevenZOutput i = new SevenZOutput(new FileOutputStream(h));
-                            i.compress(new ArchiveEntry[-1]);
+                            final SevenZOutput i = new SevenZOutput(new Path(h));
+                            i.compress(currentFile.toString(), f);
                             i.close();
                         } else if (LUtil.index == 1) { // tar
                             final TarOutput i = new TarOutput(new FileOutputStream(h));
-                            i.compress(new ArchiveEntry[-1]);
+                            i.compress(currentFile.toString(), f);
                             i.close();
                         } else if (LUtil.index == 2) { // zip
                             final ZipOutput i = new ZipOutput(new FileOutputStream(h));
-                            final ZipEntry[] j = new ZipEntry[f.length];
-                            for (int k = 0; k < j.length; k++) {
-                                final String l = f[k].toString();
-                                final ZipEntry m = new ZipEntry(l, l.replace(currentFile.toString(), ""));
-                                j[k] = m;
-                            }
                             i.level = CompressLevel.values()[LUtil.index1].value;
                             i.method = LUtil.index2 == 0 ? CompressMethod.DEFLATED : CompressMethod.STORED;
-                            i.compress(j);
+                            i.compress(currentFile.toString(), f);
                             i.close();
                         } else if (LUtil.index == 3) { // bzip2
                             CompressUtils.compressBz2(f[0].getInputStream(), new FileOutputStream(h));
@@ -1513,7 +1500,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         a.setTitle(R.string.properties);
         final View b = getLayoutInflater().inflate(R.layout.file_property_dialog, null, false);
         ((AppCompatTextView) b.findViewById(R.id.name)).setText(f.getName());
-        ((AppCompatTextView) b.findViewById(R.id.parent)).setText(f.getParentPath());
+        ((AppCompatTextView) b.findViewById(R.id.parent)).setText(f.getParent());
         String c;
         try {
             if (f.isDirectory())
@@ -1690,7 +1677,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                 case R.id.a:
                     if (b.exists()) {
                         try {
-                            b.delete();
+                            Filex.delete(b);
                         } catch (Exception ex) {
                             E.print(this, ex);
                         }
@@ -1738,7 +1725,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     }
 
     private boolean canRead(Filex f) {
-        final File a = new File((Path) f.getPath());
+        final File a = new File(f.path());
         if (a.canRead()) {
             if (a.isDirectory())
                 return a.list() != null;
