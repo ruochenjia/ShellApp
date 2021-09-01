@@ -13,23 +13,11 @@ import com.mindrex.android.appsupport.SupportApplication;
 import com.mindrex.gm.GmSystem;
 import com.mindrex.io.File;
 import com.mindrex.io.FileSystem;
-import com.mindrex.io.Path;
 import com.topjohnwu.superuser.Shell;
 
-@SuppressWarnings("RedundantSuppression")
 public final class Application extends SupportApplication {
     static {
-        try {
-            sInit();
-        } catch (Exception e) {
-            throw new IllegalStateException("\u1000\u2000\ud8ff", e);
-        }
         System.loadLibrary("native-lib");
-    }
-
-    private static void sInit() throws Exception {
-        final Path a = new Path("/");
-
     }
 
     private static Boolean firstRun = null;

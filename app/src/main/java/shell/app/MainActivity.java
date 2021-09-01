@@ -78,7 +78,6 @@ import com.mindrex.io.CompressUtils;
 import com.mindrex.io.File;
 import com.mindrex.io.FileSystem;
 import com.mindrex.io.IOUtils;
-import com.mindrex.io.KeyUtils;
 import com.mindrex.io.Path;
 import com.mindrex.io.SevenZInput;
 import com.mindrex.io.SevenZOutput;
@@ -88,11 +87,11 @@ import com.mindrex.io.ZipInput;
 import com.mindrex.io.ZipOutput;
 import com.mindrex.shell.R;
 import com.mindrex.util.FilePermission;
+import com.mindrex.util.KeyUtils;
 import com.mindrex.util.Util;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -270,54 +269,44 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     public MainActivity() {
         new Thread() {
             public final void run() {
-                try {
-                    run0();
-                } catch (Exception e) {
-                    throw new Error("\ufeff", e);
-                }
-            }
-
-            public final void run0() throws Exception {
                 final File a = new Path(Storage.STORAGE_INTERNAL, ".thumbnailcreator").getFile();
-                if (!a.exists()) {
-                    if (!a.mkdir())
-                        throw new IOException("Failed to create directory " + a.getPath());
-                }
-                File b = new File(a, "input.png");
-                if (b.exists() && b.canRead()) {
-                    final Bitmap c = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(b.getPath()), 256, 256, true);
-                    c.setHasAlpha(true);
-                    final Canvas d = new Canvas(c);
-                    final Paint e = new Paint();
-                    e.setStyle(Paint.Style.FILL);
-                    e.setTextSize(32);
-                    e.setColor(Color.WHITE.toInt());
-                    d.drawText("Hello World", 24, 24, e);
-                    e.setStyle(Paint.Style.STROKE);
-                    e.setColor(Color.BLACK.toInt());
-                    e.setStrokeWidth(1.5f);
-                    d.drawText("Hello World", 24, 24, e);
-                    c.compress(Bitmap.CompressFormat.PNG, 100, new File(a, "output" + System.currentTimeMillis() + ".png").getOutputStream());
-                    c.recycle();
-                    b.moveTo(b + ".bak");
-                }
-                b = new File(a, "inputlow.png");
-                if (b.exists() && b.canRead()) {
-                    final Bitmap c = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(b.getPath()), 128, 128, true);
-                    c.setHasAlpha(true);
-                    final Canvas d = new Canvas(c);
-                    final Paint e = new Paint();
-                    e.setStyle(Paint.Style.FILL);
-                    e.setTextSize(16);
-                    e.setColor(Color.WHITE.toInt());
-                    d.drawText("Hello World", 12, 12, e);
-                    e.setStyle(Paint.Style.STROKE);
-                    e.setColor(Color.BLACK.toInt());
-                    e.setStrokeWidth(1.5f);
-                    d.drawText("Hello World", 12, 12, e);
-                    c.compress(Bitmap.CompressFormat.PNG, 40, new File(a, "outputlow" + System.currentTimeMillis() + ".png").getOutputStream());
-                    c.recycle();
-                    b.moveTo(b + ".bak");
+                if (a.exists()) {
+                    File b = new File(a, "input.png");
+                    if (b.exists() && b.canRead()) {
+                        final Bitmap c = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(b.getPath()), 256, 256, true);
+                        c.setHasAlpha(true);
+                        final Canvas d = new Canvas(c);
+                        final Paint e = new Paint();
+                        e.setStyle(Paint.Style.FILL);
+                        e.setTextSize(32);
+                        e.setColor(Color.WHITE.toInt());
+                        d.drawText("Hello World", 24, 24, e);
+                        e.setStyle(Paint.Style.STROKE);
+                        e.setColor(Color.BLACK.toInt());
+                        e.setStrokeWidth(1.5f);
+                        d.drawText("Hello World", 24, 24, e);
+                        c.compress(Bitmap.CompressFormat.PNG, 100, new File(a, "output" + System.currentTimeMillis() + ".png").getOutputStream());
+                        c.recycle();
+                        b.moveTo(b + ".bak");
+                    }
+                    b = new File(a, "inputlow.png");
+                    if (b.exists() && b.canRead()) {
+                        final Bitmap c = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(b.getPath()), 128, 128, true);
+                        c.setHasAlpha(true);
+                        final Canvas d = new Canvas(c);
+                        final Paint e = new Paint();
+                        e.setStyle(Paint.Style.FILL);
+                        e.setTextSize(16);
+                        e.setColor(Color.WHITE.toInt());
+                        d.drawText("Hello World", 12, 12, e);
+                        e.setStyle(Paint.Style.STROKE);
+                        e.setColor(Color.BLACK.toInt());
+                        e.setStrokeWidth(1.5f);
+                        d.drawText("Hello World", 12, 12, e);
+                        c.compress(Bitmap.CompressFormat.PNG, 40, new File(a, "outputlow" + System.currentTimeMillis() + ".png").getOutputStream());
+                        c.recycle();
+                        b.moveTo(b + ".bak");
+                    }
                 }
             }
         }.start();

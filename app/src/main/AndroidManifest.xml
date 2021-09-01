@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:dist="http://schemas.android.com/apk/distribution"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.mindrex.shell"
@@ -75,13 +74,14 @@
         android:persistent="true"
         android:persistentWhenFeatureAvailable="true"
         android:requestLegacyExternalStorage="true"
+        android:requestRawExternalStorageAccess="true"
         android:roundIcon="@mipmap/app_icon_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="RtlEnabled"
         tools:replace="android:appComponentFactory"
-        tools:targetApi="p">
+        tools:targetApi="s">
         <meta-data
             android:name="android.resizeableActivity"
             android:value="true" />

@@ -8,6 +8,8 @@ import android.content.pm.Signature;
 import android.util.Base64;
 import android.util.Log;
 
+import androidx.annotation.Keep;
+
 import com.mindrex.util.Util;
 
 import java.io.ByteArrayInputStream;
@@ -17,6 +19,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
+@Keep
 public final class PmsHookApplication extends Application implements InvocationHandler {
     private static final int GET_SIGNATURES = 0x00000040;
 

@@ -8,6 +8,7 @@ android {
     defaultConfig {
         applicationId "com.mindrex.shell"
         minSdkVersion 16
+        //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 28
         versionCode 48
         versionName "TestDev5"
@@ -26,12 +27,14 @@ android {
             jniDebuggable false
             renderscriptDebuggable false
             signingConfig signingConfigs.debug
+            multiDexEnabled false
         }
         debug {
             debuggable true
             jniDebuggable true
             renderscriptDebuggable true
             minifyEnabled false
+            multiDexEnabled false
         }
     }
 

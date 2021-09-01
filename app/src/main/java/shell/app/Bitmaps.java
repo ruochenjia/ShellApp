@@ -9,8 +9,6 @@ import com.mindrex.android.appsupport.ContextUtils;
 import com.mindrex.shell.R;
 
 final class Bitmaps {
-    public static final String.Builder Build = new String.Builder();
-
     public static final Drawable folder;
     public static final Drawable imageFile;
     public static final Drawable musicFile;

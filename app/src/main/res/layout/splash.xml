@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="20dp"
-        android:fontFamily="@font/motto"
+        android:fontFamily="@font/menu"
         android:gravity="center"
         android:textColor="@color/contents"
         android:textSize="14sp" />
