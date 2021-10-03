@@ -1,8 +1,8 @@
-include ':io'
-project(':io').projectDir = new File(settingsDir, './../../Programming Projects/JavaDesktop/libraries/io')
-include ':annotation'
-project(':annotation').projectDir = new File(settingsDir, './../../Programming Projects/JavaDesktop/libraries/annotation')
-include ':appsupport'
-project(':appsupport').projectDir = new File(settingsDir, './../../Programming Projects/Android/libraries/appsupport')
+include ":io"
+project(":io").projectDir = new File("/mnt/sdcard/Projects/JavaDesktop/libraries/io")
+include ":annotation"
+project(":annotation").projectDir = new File("/mnt/sdcard/Projects/JavaDesktop/libraries/annotation")
+include ":appsupport"
+project(":appsupport").projectDir = new File("/home/shell/Projects/Android/libraries/appsupport")
 include ':app'
 rootProject.name = "Browser"
