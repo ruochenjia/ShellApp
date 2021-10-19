@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="../../Projects/Android/libraries/appsupport/src/main/res/layout/html_viewer_bottom_bar.xml" value="0.35733695652173914" />
+        <entry key="../../Projects/Android/libraries/appsupport/src/main/res/layout/html_viewer_topbar.xml" value="0.35733695652173914" />
         <entry key="app/src/main/res/drawable-anydpi/copy.xml" value="0.2725" />
         <entry key="app/src/main/res/drawable-anydpi/tick.xml" value="0.2725" />
         <entry key="app/src/main/res/drawable/file.xml" value="0.2725" />

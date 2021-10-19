@@ -142,7 +142,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         @Override
         public final void run() {
             final Filex v = new Filex(currentFile.toString());
-            if (canRead(v) || CommandUtils.hasRootAccess)
+            if (canRead(v) || CommandUtils.hasRootAccess())
                 fileList = v.listFiles();
             else {
                 RootRequiredDialog.show(MainActivity.this);
@@ -512,14 +512,14 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     final Filex xf = f;
                     FileExtension fileExtension = FileExtension.CheckFileExtension(xf);
                     if (fileExtension == FileExtension.IMAGE) {
-                        Application.sendIntentData(this, xf.toFile(), "image/*");
+                        Application.sendIntentData(this, xf, "image/*");
                     } else if (fileExtension == FileExtension.MUSIC) {
-                        Application.sendIntentData(this, xf.toFile(), "audio/*");
+                        Application.sendIntentData(this, xf, "audio/*");
                     } else if (fileExtension == FileExtension.TEXT || fileExtension == FileExtension.CODE) {
                         final Intent i = new Intent(this, TextEditorActivity.class);
                         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         i.setAction(Intent.ACTION_VIEW);
-                        i.setDataAndType(Uri.fromFile(xf.toFile()), "text/plain");
+                        i.setDataAndType(Uri.fromFile(xf), "text/plain");
                         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                         startActivity(i);
                     } else if (fileExtension == FileExtension.ZIP_ARCHIVE || fileExtension == FileExtension.ARCHIVE) {
@@ -726,14 +726,14 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                             }, AlertDialog.cancelButton);
                         }
                     } else if (fileExtension == FileExtension.VIDEO) {
-                        Application.sendIntentData(this, xf.toFile(), "video/*");
+                        Application.sendIntentData(this, xf, "video/*");
                     } else if (fileExtension == FileExtension.XAPK) {// unf
                     } else if (fileExtension == FileExtension.HTML) {
-                        Application.sendIntentData(this, xf.toFile(), "text/html");
+                        Application.sendIntentData(this, xf, "text/html");
                     } else if (fileExtension == FileExtension.PDF) {
-                        Application.sendIntentData(this, xf.toFile(), "application/pdf");
+                        Application.sendIntentData(this, xf, "application/pdf");
                     } else if (fileExtension == FileExtension.APK) {
-                        Application.sendIntentData(this, xf.toFile(), "application/vnd.android.package-archive");
+                        Application.sendIntentData(this, xf, "application/vnd.android.package-archive");
                     } else if (fileExtension == FileExtension.COMPRESSED) {
                         final String s = xf.getName();
                         AlertDialog.show(this, s, getResources().getString(R.string.extract_file_confirm_message),
@@ -745,23 +745,23 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                                 try {
                                                     ArchiveType archiveType = ArchiveType.fromFileExtension(s);
                                                     if (archiveType == ArchiveType.BROTLI) {
-                                                        CompressUtils.extractBrotli(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractBrotli(xf.getInputStream(), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.BZIP2) {
-                                                        CompressUtils.extractBz2(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractBz2(xf.getInputStream(), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.GZIP) {
-                                                        CompressUtils.extractGz(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractGz(xf.getInputStream(), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.LZ4) {
-                                                        CompressUtils.extractLz4(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractLz4(xf.getInputStream(), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.PACK200) {
-                                                        CompressUtils.extractPack200(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractPack200(xf.getInputStream(), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.SNAPPY) {
-                                                        CompressUtils.extractSnappy(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractSnappy(xf.getInputStream(), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.XZ) {
-                                                        CompressUtils.extractXz(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractXz(xf.getInputStream(), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.Z) {
-                                                        CompressUtils.extractZ(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractZ(xf.getInputStream(), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else if (archiveType == ArchiveType.ZSTD) {
-                                                        CompressUtils.extractZst(new FileInputStream(xf.toString()), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
+                                                        CompressUtils.extractZst(xf.getInputStream(), new FileOutputStream(IOUtils.removeFileExtension(xf.getPath()), false));
                                                     } else {
                                                         throw new IllegalArgumentException("Unsupported file type: " + s);
                                                     }
@@ -776,7 +776,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                         try {
                             final MimeTypeMap m = MimeTypeMap.getSingleton();
                             final String j = xf.getName().substring(xf.getName().indexOf(".") + 1);
-                            Application.sendIntentData(this, xf.toFile(), m.getMimeTypeFromExtension(j));
+                            Application.sendIntentData(this, xf, m.getMimeTypeFromExtension(j));
                         } catch (Exception e) {
                             E.print(this, e);
                         }
@@ -1035,7 +1035,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                         getResources().getString(R.string.open_with),
                                         null,
                                         ContextCompat.getDrawable(this, R.drawable.open_with),
-                                        a -> Application.sendIntentData(this, f.toFile(), "*/*")
+                                        a -> Application.sendIntentData(this, f, "*/*")
                                 ),
                                 new SelectDialogItem(
                                         getResources().getString(R.string.move),
@@ -1099,7 +1099,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                             final Intent i = new Intent();
                                             i.setAction(Intent.ACTION_SEND);
                                             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            i.setDataAndType(FileProvider.getUriForFile(this, getPackageName() + ".provider", f.toFile()), "*/*");
+                                            i.setDataAndType(FileProvider.getUriForFile(this, getPackageName() + ".provider", f), "*/*");
                                             startActivity(Intent.createChooser(i, f.getName()));
                                         }
                                 ),
@@ -1122,7 +1122,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                         getResources().getString(R.string.open_with),
                                         null,
                                         ContextCompat.getDrawable(this, R.drawable.open_with),
-                                        a -> Application.sendIntentData(this, f.toFile(), "*/*")
+                                        a -> Application.sendIntentData(this, f, "*/*")
                                 ),
                                 new SelectDialogItem(
                                         getResources().getString(R.string.move),
@@ -1186,7 +1186,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                             final Intent i = new Intent();
                                             i.setAction(Intent.ACTION_SEND);
                                             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            i.setDataAndType(FileProvider.getUriForFile(this, getPackageName() + ".provider", f.toFile()), "*/*");
+                                            i.setDataAndType(FileProvider.getUriForFile(this, getPackageName() + ".provider", f), "*/*");
                                             startActivity(Intent.createChooser(i, f.getName()));
                                         }
                                 ),
@@ -1321,7 +1321,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
             }
         });
         swipeRefreshLayout.setOnRefreshListener(this::refreshContent);
-        if (!CommandUtils.hasRootAccess)
+        if (!CommandUtils.hasRootAccess())
             Toast.makeText(this, R.string.no_root_layout, Toast.LENGTH_SHORT).show();
         if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
             Toast.makeText(this, R.string.unsupported_system_version_warning, Toast.LENGTH_LONG).show();

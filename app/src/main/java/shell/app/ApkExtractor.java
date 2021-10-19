@@ -40,7 +40,6 @@ import com.mindrex.android.appsupport.SelectDialogItem;
 import com.mindrex.data.Array;
 import com.mindrex.gm.GmSystem;
 import com.mindrex.shell.R;
-import com.topjohnwu.superuser.Shell;
 
 import java.util.Arrays;
 import java.util.List;
@@ -181,20 +180,6 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
         else bottomBar.setVisibility(View.GONE);
     }
 
-    private void exec(String s) throws Exception {
-        final Shell.Result a = Shell.su(s).exec();
-        final int b = a.getCode();
-        if (b != 0) {
-            final String[] c = a.getErr().toArray(new String[0]);
-            if (c.length > 0) {
-                final StringBuilder d = new StringBuilder("Error: ");
-                for (String e : c)
-                    d.append(e).append("\n");
-                throw new Exception(d.toString());
-            } else throw new Exception("Process stopped with non-zero value: " + b);
-        }
-    }
-
     private void openAppSettings(String pkg) {
         try {
             final Intent i = new Intent();
@@ -237,9 +222,9 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                     new SelectDialogItem(Res.string(R.string.application_information), null, Res.drawable(R.drawable.about, getTheme()), (d) -> openAppInfo(s)),
                     new SelectDialogItem(Res.string(R.string.manage_application), null, Res.drawable(R.drawable.developer_tools), (d) -> openAppSettings(s)),
                     new SelectDialogItem(Res.string(R.string.disable_package), null, Res.drawable(R.drawable.disable, getTheme()), (d) -> {
-                        if (CommandUtils.hasRootAccess) {
+                        if (CommandUtils.hasRootAccess()) {
                             try {
-                                exec("pm disable " + s);
+                                CommandUtils.execWithException("pm disable " + s);
                             } catch (Exception t) {
                                 E.print(this, t);
                             }
@@ -247,9 +232,9 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                         } else RootRequiredDialog.show(this);
                     }),
                     new SelectDialogItem(Res.string(R.string.uninstall_package), null, Res.drawable(R.drawable.delete, getTheme()), (d) -> {
-                        if (CommandUtils.hasRootAccess) {
+                        if (CommandUtils.hasRootAccess()) {
                             try {
-                                exec("pm uninstall " + s);
+                                CommandUtils.execWithException("pm uninstall " + s);
                             } catch (Exception t) {
                                 E.print(this, t);
                             }
@@ -261,9 +246,9 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                     new SelectDialogItem(Res.string(R.string.application_information), null, Res.drawable(R.drawable.about, getTheme()), (d) -> openAppInfo(s)),
                     new SelectDialogItem(Res.string(R.string.manage_application), null, Res.drawable(R.drawable.developer_tools, getTheme()), (d) -> openAppSettings(s)),
                     new SelectDialogItem(Res.string(R.string.enable_package), null, Res.drawable(R.drawable.enable, getTheme()), (d) -> {
-                        if (CommandUtils.hasRootAccess) {
+                        if (CommandUtils.hasRootAccess()) {
                             try {
-                                exec("pm disable " + s);
+                                CommandUtils.execWithException("pm disable " + s);
                             } catch (Exception t) {
                                 E.print(this, t);
                             }
@@ -271,9 +256,9 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                         } else RootRequiredDialog.show(this);
                     }),
                     new SelectDialogItem(Res.string(R.string.uninstall_package), null, Res.drawable(R.drawable.delete, getTheme()), (d) -> {
-                        if (CommandUtils.hasRootAccess) {
+                        if (CommandUtils.hasRootAccess()) {
                             try {
-                                exec("pm uninstall " + s);
+                                CommandUtils.execWithException("pm uninstall " + s);
                             } catch (Exception t) {
                                 E.print(this, t);
                             }

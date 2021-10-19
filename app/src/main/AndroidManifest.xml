@@ -119,15 +119,6 @@
             android:enabled="false"
             android:process=":restart"
             android:stopWithTask="false" />
-        <service
-            android:name="shell.app.UpdateService"
-            android:enabled="false"
-            android:process=":update"
-            android:stopWithTask="false" />
-
-        <activity
-            android:name="shell.app.UpdateService$activity"
-            android:enabled="false" />
 
         <activity
             android:name="shell.app.TextEditorActivity"

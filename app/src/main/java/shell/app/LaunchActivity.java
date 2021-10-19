@@ -6,13 +6,12 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatTextView;
 
 import com.mindrex.shell.R;
 import com.topjohnwu.superuser.Shell;
 
-public final class LaunchActivity extends ActivityFramework implements Shell.GetShellCallback {
+public final class LaunchActivity extends ActivityFramework {
     public LaunchActivity() {
         super(R.layout.splash);
     }
@@ -35,15 +34,9 @@ public final class LaunchActivity extends ActivityFramework implements Shell.Get
     }
 
     @Override
-    public final void onShell(@NonNull Shell shell) {
+    public final void run() {
         final Intent a = new Intent(this, MainActivity.class);
         a.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(a);
-        finish();
-    }
-
-    @Override
-    public final void run() {
-        Shell.getShell(this);
     }
 }

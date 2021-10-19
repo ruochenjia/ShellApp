@@ -5,14 +5,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 
-import androidx.annotation.CallSuper;
 import androidx.core.content.FileProvider;
 
 import com.mindrex.android.appsupport.Storage;
 import com.mindrex.android.appsupport.SupportApplication;
-import com.mindrex.gm.GmSystem;
 import com.mindrex.io.File;
-import com.mindrex.io.FileSystem;
+import com.mindrex.util.FilePermission;
 import com.topjohnwu.superuser.Shell;
 
 public final class Application extends SupportApplication {
@@ -28,7 +26,9 @@ public final class Application extends SupportApplication {
             if (a.exists())
                 return firstRun = false;
             else {
-                assert a.createNewFile();
+                //noinspection ResultOfMethodCallIgnored
+                a.createNewFile();
+                a.setMode(FilePermission.OWNER_READ | FilePermission.OWNER_WRITE);
                 return firstRun = true;
             }
         } else return firstRun;
@@ -37,29 +37,10 @@ public final class Application extends SupportApplication {
     @Override
     public final void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-        GmSystem.init();
-        Shell.enableVerboseLogging = debug;
-        Shell.setDefaultBuilder(Shell.Builder.create()
-                .setFlags(Shell.FLAG_REDIRECT_STDERR)
-                .setTimeout(10)
-        );
+
+        Shell.getShell();
     }
 
-    @Override
-    public final void onCreate() {
-        super.onCreate();
-        try {
-            final String a = getFilesDir() + "/tr+data";
-            if (!FileSystem.nativeFs.exists(a))
-                FileSystem.nativeFs.createSocketFile(a);
-            FileSystem.nativeFs.setFilePermission(a, 505);
-            FileSystem.nativeFs.setFileLastModified(a, 0);
-        } catch (Exception e) {
-            throw new IllegalStateException("aaa", e);
-        }
-    }
-
-    @CallSuper
     public static void sendIntentData(Context ctx, File f, String type) {
         final Intent a = new Intent(Intent.ACTION_VIEW);
         a.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
