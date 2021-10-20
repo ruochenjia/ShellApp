@@ -20,13 +20,13 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.AppCompatTextView;
 
+import com.mindrex.android.appsupport.CommandUtils;
 import com.mindrex.android.appsupport.E;
 import com.mindrex.android.appsupport.Utils;
 import com.mindrex.io.File;
 import com.mindrex.io.IOUtils;
 import com.mindrex.shell.R;
 import com.mindrex.util.Util;
-import com.topjohnwu.superuser.Shell;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -138,34 +138,12 @@ public final class ApkInstaller extends ActivityFramework {
         }
     }
 
-    private String getMsg(String[] a, String[] b) {
-        final StringBuilder c = new StringBuilder("\n");
-        if (a.length > 0) {
-            for (String d : a)
-                c.append("\n").append(d);
-            c.append("\n\n");
-        } else if (b.length == 0)
-            return null;
-        for (String d : b)
-            c.append("\n").append(d);
-        return c.toString();
-    }
-
     @Override
     public void run() {
         try {
-            if (Shell.rootAccess()) {
-                final Shell.Result b = Shell.su("pm install " + apkFile.getPath()).exec();
-                final int c = b.getCode();
-                if (c != 0) {
-                    String s = getMsg(b.getOut().toArray(new String[0]), b.getErr().toArray(new String[0]));
-                    if (s == null)
-                        s = "Process stopped with non-zero value: " + c;
-                    errCode = s;
-                    handler.sendEmptyMessage(1);
-                    return;
-                }
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            if (CommandUtils.hasRootAccess())
+                CommandUtils.execWithException("pm install " + apkFile.getPath());
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
                 installPackage(apkFile.getInputStream());
             else {
                 final Intent a = new Intent(Intent.ACTION_VIEW);

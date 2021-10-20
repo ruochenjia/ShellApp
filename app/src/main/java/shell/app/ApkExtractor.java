@@ -223,22 +223,15 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                     new SelectDialogItem(Res.string(R.string.manage_application), null, Res.drawable(R.drawable.developer_tools), (d) -> openAppSettings(s)),
                     new SelectDialogItem(Res.string(R.string.disable_package), null, Res.drawable(R.drawable.disable, getTheme()), (d) -> {
                         if (CommandUtils.hasRootAccess()) {
-                            try {
-                                CommandUtils.execWithException("pm disable " + s);
-                            } catch (Exception t) {
-                                E.print(this, t);
-                            }
-                            updatePackageInfo(position);
+                            if (!pm.disable(s))
+                                Toast.makeText(this, R.string.operation_failed, Toast.LENGTH_SHORT).show();
                         } else RootRequiredDialog.show(this);
                     }),
                     new SelectDialogItem(Res.string(R.string.uninstall_package), null, Res.drawable(R.drawable.delete, getTheme()), (d) -> {
                         if (CommandUtils.hasRootAccess()) {
-                            try {
-                                CommandUtils.execWithException("pm uninstall " + s);
-                            } catch (Exception t) {
-                                E.print(this, t);
-                            }
-                            updatePackageInfo(position);
+                            if (!pm.uninstall(s))
+                                Toast.makeText(this, R.string.operation_failed, Toast.LENGTH_SHORT).show();
+                            else updatePackageInfo(position);
                         } else RootRequiredDialog.show(this);
                     })
             } : new SelectDialogItem[]{
@@ -247,22 +240,15 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
                     new SelectDialogItem(Res.string(R.string.manage_application), null, Res.drawable(R.drawable.developer_tools, getTheme()), (d) -> openAppSettings(s)),
                     new SelectDialogItem(Res.string(R.string.enable_package), null, Res.drawable(R.drawable.enable, getTheme()), (d) -> {
                         if (CommandUtils.hasRootAccess()) {
-                            try {
-                                CommandUtils.execWithException("pm disable " + s);
-                            } catch (Exception t) {
-                                E.print(this, t);
-                            }
-                            updatePackageInfo(position);
+                            if (!pm.enable(s))
+                                Toast.makeText(this, R.string.operation_failed, Toast.LENGTH_SHORT).show();
                         } else RootRequiredDialog.show(this);
                     }),
                     new SelectDialogItem(Res.string(R.string.uninstall_package), null, Res.drawable(R.drawable.delete, getTheme()), (d) -> {
                         if (CommandUtils.hasRootAccess()) {
-                            try {
-                                CommandUtils.execWithException("pm uninstall " + s);
-                            } catch (Exception t) {
-                                E.print(this, t);
-                            }
-                            updatePackageInfo(position);
+                            if (!pm.uninstall(s))
+                                Toast.makeText(this, R.string.operation_failed, Toast.LENGTH_SHORT).show();
+                            else updatePackageInfo(position);
                         } else RootRequiredDialog.show(this);
                     })
             };
@@ -338,7 +324,7 @@ public final class ApkExtractor extends ActivityFramework implements TextWatcher
             this.packageName = packageInfo.packageName;
             this.label = pm.getApplicationLabel(packageInfo.applicationInfo).toString();
             this.icon = pm.getApplicationIcon(packageName);
-            this.version = packageInfo.versionName;
+            this.version = packageInfo.versionName == null ? "" : packageInfo.versionName;
             this.versionCode = packageInfo.versionCode;
             this.installTime = packageInfo.firstInstallTime;
             this.updateTime = packageInfo.lastUpdateTime;

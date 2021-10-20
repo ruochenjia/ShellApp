@@ -7,11 +7,11 @@ import android.os.Build;
 
 import androidx.core.content.FileProvider;
 
+import com.mindrex.android.appsupport.CommandUtils;
 import com.mindrex.android.appsupport.Storage;
 import com.mindrex.android.appsupport.SupportApplication;
 import com.mindrex.io.File;
 import com.mindrex.util.FilePermission;
-import com.topjohnwu.superuser.Shell;
 
 public final class Application extends SupportApplication {
     static {
@@ -37,8 +37,7 @@ public final class Application extends SupportApplication {
     @Override
     public final void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-
-        Shell.getShell();
+        CommandUtils.getShell();
     }
 
     public static void sendIntentData(Context ctx, File f, String type) {
