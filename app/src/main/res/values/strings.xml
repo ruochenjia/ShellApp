@@ -108,6 +108,7 @@
     <string name="size">Size</string>
     <string name="skip_this_file">Skip this file</string>
     <string name="socket_file">Socket File</string>
+    <string name="copy_failed">Copy failed</string>
     <string name="sort_by">Sort by</string>
     <string name="storage_usage_display">$available_memory available of $total_memory</string>
     <string name="string_empty_message">Input string cannot be empty</string>
@@ -136,4 +137,5 @@
     <string name="install_confirm_message">Do you want to install this application?</string>
     <string name="about">About</string>
     <string name="operation_failed">Operation failed</string>
+    <string name="splash">Never give up once you started</string>
 </resources>

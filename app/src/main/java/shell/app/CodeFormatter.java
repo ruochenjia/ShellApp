@@ -56,7 +56,7 @@ public final class CodeFormatter extends ActivityFramework {
                     try {
                         if (!inputString.isEmpty())
                             try {
-                                outputString.setText(new JSONFormatter(inputString.toString(), 2).format(JSONFormatter.SORT_DISABLED));
+                                outputString.setText(new JSONFormatter(inputString.toString(), 2).format());
                             } catch (Exception e) {
                                 outputString.setText(e.getMessage());
                             }
@@ -65,20 +65,6 @@ public final class CodeFormatter extends ActivityFramework {
                         E.print(this, e);
                     }
                     break;
-                case 1: {
-                    try {
-                        if (!inputString.isEmpty())
-                            try {
-                                outputString.setText(new JSONFormatter(inputString.toString(), 2).format(JSONFormatter.SORT_DEFAULT));
-                            } catch (Exception e) {
-                                outputString.setText(e.getMessage());
-                            }
-                        else outputString.setText(R.string.string_empty_message);
-                    } catch (Exception e) {
-                        E.print(this, e);
-                    }
-                    break;
-                }
                 case 2: // xml
                     try {
                         if (!inputString.isEmpty())
@@ -107,27 +93,13 @@ public final class CodeFormatter extends ActivityFramework {
                         outputString.setText("");
                         if (!inputString.isEmpty())
                             try {
-                                outputString.setText(new JSONFormatter(inputString.toString(), -1).format(JSONFormatter.SORT_DISABLED));
+                                outputString.setText(new JSONFormatter(inputString.toString(), -1).format());
                             } catch (Exception e) {
                                 outputString.setText(e.getMessage());
                             }
                         else {
                             outputString.setText(R.string.string_empty_message);
                         }
-                    } catch (Exception e) {
-                        E.print(this, e);
-                    }
-                    break;
-                case 1:
-                    try {
-                        outputString.setText("");
-                        if (!inputString.isEmpty())
-                            try {
-                                outputString.setText(new JSONFormatter(inputString.toString(), -1).format(JSONFormatter.SORT_DEFAULT));
-                            } catch (Exception e) {
-                                outputString.setText(e.getMessage());
-                            }
-                        else outputString.setText(R.string.string_empty_message);
                     } catch (Exception e) {
                         E.print(this, e);
                     }
@@ -188,7 +160,6 @@ public final class CodeFormatter extends ActivityFramework {
     final void resetContents() {
         switch (syntaxType) {
             case 0: // json
-            case 1: // alphabetical json
                 minifyButton.setVisibility(View.VISIBLE);
                 break;
             case 2: // xml

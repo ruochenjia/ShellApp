@@ -11,13 +11,12 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/../../../shell/Projects/Android/libraries/appsupport" />
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/app" />
             <option value="/mnt/sdcard/Projects/JavaDesktop/libraries/annotation" />
             <option value="/mnt/sdcard/Projects/JavaDesktop/libraries/io" />
-            <option value="/userdata/home/shell/AndroidStudioProjects/Browser" />
-            <option value="/userdata/home/shell/AndroidStudioProjects/Browser/app" />
           </set>
         </option>
-        <option name="resolveModulePerSourceSet" value="false" />
       </GradleProjectSettings>
     </option>
   </component>

@@ -4,13 +4,11 @@
     android:layout_height="wrap_content"
     android:layout_centerInParent="true"
     android:layout_gravity="center"
-    android:gravity="center"
     android:orientation="vertical">
 
     <androidx.appcompat.widget.AppCompatTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
         android:gravity="center"
         android:text="@string/your_random_uuid"
         android:textColor="@color/contents" />
@@ -19,7 +17,6 @@
         android:id="@+id/uuidDisplay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
         android:gravity="center"
         android:textColor="@color/contents_title" />
 

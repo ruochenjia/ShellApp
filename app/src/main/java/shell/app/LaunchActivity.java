@@ -19,7 +19,6 @@ public final class LaunchActivity extends ActivityFramework {
     @Override
     public final void onCreate(Bundle b) {
         super.onCreate(b);
-        ((AppCompatTextView) findViewById(R.id.splash)).setText(Splash.getRandom(), TextView.BufferType.NORMAL);
     }
 
     @Override

@@ -3,10 +3,14 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="1.7">
       <module name="AndroidStudioProjects.Browser.app" target="17" />
-      <module name="Browser.app" target="16" />
+      <module name="Browser.app" target="17" />
       <module name="Browser.appsupport" target="17" />
       <module name="libraries.Browser.appsupport" target="17" />
       <module name="libraries.Browser.io" target="1.8" />
+      <module name="libraries.Browser.io.main" target="1.8" />
+      <module name="libraries.Browser.io.main~1" target="1.8" />
+      <module name="libraries.Browser.io.test" target="1.8" />
+      <module name="libraries.Browser.io.test~1" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

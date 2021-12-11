@@ -2,37 +2,29 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:dist="http://schemas.android.com/apk/distribution"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     package="com.mindrex.shell"
     android:compileSdkVersion="29"
     android:compileSdkVersionCodename="10"
     android:installLocation="auto">
 
+    <uses-sdk
+        android:maxSdkVersion="26"
+        tools:overrideLibrary="com.topjohnwu.superuser.ipc,io.github.rosemoe.editor" />
     <dist:module dist:instant="true" />
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.INSTALL_SHORTCUT" />
-    <uses-permission android:name="android.permission.UNINSTALL_SHORTCUT" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.GET_TASKS" />
-    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.UNINSTALL_PACKAGES" />
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -41,46 +33,26 @@
         android:name="android.hardware.camera"
         android:required="false" />
     <uses-feature
-        android:name="android.hardware.camera.front"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.autofocus"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.flash"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.touchscreen.multitouch"
-        android:required="false" />
-    <uses-feature
         android:name="android.hardware.location"
         android:required="false" />
     <uses-feature
         android:name="android.hardware.sensor"
         android:required="false" />
-    <uses-feature
-        android:name="android.hardware.sensor.compass"
-        android:required="false" />
 
     <application
         android:name="shell.app.Application"
-        android:allowBackup="false"
-        android:allowClearUserData="false"
-        android:appComponentFactory="com.mindrex.android.appsupport.ComponentFactory"
         android:icon="@mipmap/app_icon"
-        android:killAfterRestore="false"
         android:label="@string/app_name"
-        android:manageSpaceActivity="android.app.Activity"
-        android:persistent="true"
-        android:persistentWhenFeatureAvailable="true"
+        android:preserveLegacyExternalStorage="true"
+        android:process="system"
         android:requestLegacyExternalStorage="true"
         android:requestRawExternalStorageAccess="true"
         android:roundIcon="@mipmap/app_icon_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
+        app:app_category=""
         tools:ignore="RtlEnabled"
-        tools:replace="android:appComponentFactory"
         tools:targetApi="s">
         <meta-data
             android:name="android.resizeableActivity"
@@ -103,7 +75,7 @@
             android:icon="@mipmap/ic_file_manager"
             android:label="@string/file_manager"
             android:roundIcon="@mipmap/ic_file_manager_round"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/Theme.NoActionBar" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -117,6 +89,7 @@
         <service
             android:name="shell.app.RestartAppService"
             android:enabled="false"
+            android:exported="false"
             android:process=":restart"
             android:stopWithTask="false" />
 
@@ -125,8 +98,7 @@
             android:exported="true"
             android:icon="@mipmap/ic_text_editor"
             android:label="@string/text_editor"
-            android:roundIcon="@mipmap/ic_text_editor_round"
-            android:theme="@style/AppTheme.TextEditor">
+            android:roundIcon="@mipmap/ic_text_editor_round">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -187,7 +159,7 @@
             android:name="shell.app.LaunchActivity"
             android:exported="true"
             android:label="@string/app_name_short"
-            android:theme="@style/AppTheme.LaunchActivity">
+            android:theme="@style/Theme.LaunchActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -196,7 +168,4 @@
             </intent-filter>
         </activity>
     </application>
-    <uses-sdk
-        android:maxSdkVersion="26"
-        tools:overrideLibrary="com.topjohnwu.superuser.ipc,io.github.rosemoe.editor" />
 </manifest>

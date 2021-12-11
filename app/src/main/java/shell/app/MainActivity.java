@@ -2,6 +2,7 @@ package shell.app;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -61,6 +62,7 @@ import com.mindrex.android.appsupport.AlertDialog;
 import com.mindrex.android.appsupport.ArchiveType;
 import com.mindrex.android.appsupport.Color;
 import com.mindrex.android.appsupport.CommandUtils;
+import com.mindrex.android.appsupport.ContextUtils;
 import com.mindrex.android.appsupport.DialogButton;
 import com.mindrex.android.appsupport.E;
 import com.mindrex.android.appsupport.Filex;
@@ -121,7 +123,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     private final StringHolder currentFile = new StringHolder();
     private boolean[] selection;
     private Filex[] fileList;
-    private List<String> origins;
+    private final List<String> origins = new ArrayList<>();
     private int selectedCount = 0;
 
     private View storagePartitionInternal, storagePartitionExternal, storagePartitionRoot, storagePartitionData, storagePartitionCache, storagePartitionSystem;
@@ -138,136 +140,131 @@ public final class MainActivity extends ActivityFramework implements AdapterView
     private boolean extractingFile = false;
     private boolean reverseOrder = false;
 
-    private final Runnable setupContentData = new Runnable() {
-        @Override
-        public final void run() {
-            final Filex v = new Filex(currentFile.toString());
-            if (canRead(v) || CommandUtils.hasRootAccess())
-                fileList = v.listFiles();
-            else {
-                RootRequiredDialog.show(MainActivity.this);
-                fileList = new Filex[0];
-            }
-            if (reverseOrder) Arrays.sort(fileList, Collections.reverseOrder());
+    private void setupContentData() {
+        final Filex v = new Filex(currentFile.toString());
+        if (canRead(v) || CommandUtils.hasRootAccess()) {
+            fileList = v.listFiles();
+            if (reverseOrder)
+                Arrays.sort(fileList, Collections.reverseOrder());
             else Arrays.sort(fileList);
-            final FileData[] a = new FileData[fileList.length];
-            int folderCount = 0;
-            int fileCount = 0;
-            for (int i = 0; i < fileList.length; i++) {
-                final FileData b = new FileData();
-                final Filex f = fileList[i];
-                b.name = f.getName();
-                if (f.isDirectory()) {
-                    b.icon = Bitmaps.folder;
-                    b.description = timeFormat.format(f.lastModified());
-                    folderCount++;
-                } else {
-                    switch (FileExtension.CheckFileExtension(f)) {
-                        case IMAGE:
-                            try {
-                                b.icon = new BitmapDrawable(getResources(), Thumbnail.createImageThumbnail(f.toString(), (byte) 100));
-                            } catch (Exception e) {
-                                b.icon = Bitmaps.imageFile;
-                            }
-                            break;
-                        case MUSIC:
-                            b.icon = Bitmaps.musicFile;
-                            break;
-                        case TEXT:
-                            b.icon = Bitmaps.textDocument;
-                            break;
-                        case CODE:
-                            b.icon = Bitmaps.codeFile;
-                            break;
-                        case ZIP_ARCHIVE:
-                        case ARCHIVE:
-                            b.icon = Bitmaps.archiveFile;
-                            break;
-                        case VIDEO:
-                            b.icon = Bitmaps.videoFile;
-                            break;
-                        case APK:
-                            try {
-                                final PackageManager c = getPackageManager();
-                                final ApplicationInfo d = c.getPackageArchiveInfo(f.toString(), 0).applicationInfo;
-                                b.icon = c.getApplicationIcon(d);
-                            } catch (Exception e) {
-                                b.icon = Bitmaps.apkFile;
-                            }
-                            break;
-                        case XAPK:
-                            b.icon = Bitmaps.apkBundle;
-                            break;
-                        case HTML:
-                            b.icon = Bitmaps.htmlFile;
-                            break;
-                        case DEFAULT:
-                        case UNKNOWN:
-                            b.icon = Bitmaps.file;
-                            break;
-                        default:
-                            b.icon = Bitmaps.unknownFile;
-                            break;
-                    }
-                    b.description = timeFormat.format(f.lastModified()) + " " + new FileSizeTransform(f.size());
-                    fileCount++;
-                }
-                a[i] = b;
-            }
-            selection = new boolean[fileList.length];
-            adaptor.setData(a);
-            final MemoryStatus b = new MemoryStatus(currentFile.toString());
-            actionBar.setSubtitle(getResources().getString(R.string.current_directory_info)
-                    .replace("$file_count", String.valueOf(fileCount))
-                    .replace("$folder_count", String.valueOf(folderCount))
-                    .replace("$disk_info", b.getFinalAvailableMemorySize() + "/" + b.getFinalTotalMemorySize())
-            );
-            backButton.setEnabled(true);
+        } else {
+            RootRequiredDialog.show(MainActivity.this);
+            fileList = new Filex[0];
         }
-    };
-    private final Runnable copyFile = new Runnable() {
-        @Override
-        public final void run() {
-            if (origins.size() > 0) {
-                for (int i = 0; i < origins.size(); i++) {
-                    synchronized (pauseLock) {
-                        if (stopping) break;
-                        else if (isPaused) {
-                            try {
-                                synchronized (pauseLock) {
-                                    pauseLock.wait();
-                                }
-                            } catch (Exception e) {
-                                break;
-                            }
-                        }
-                    }
-                    final Filex a = new Filex(origins.get(i));
-                    final Filex b = new Filex(currentFile.toString(), a.getName());
-                    if (movingFile) {
-                        if (!b.exists()) try {
-                            a.moveTo(b);
+        final FileData[] a = new FileData[fileList.length];
+        int folderCount = 0;
+        int fileCount = 0;
+        for (int i = 0; i < fileList.length; i++) {
+            final FileData b = new FileData();
+            final Filex f = fileList[i];
+            b.name = f.getName();
+            if (f.isDirectory()) {
+                b.icon = Bitmaps.folder;
+                b.description = timeFormat.format(f.lastModified());
+                folderCount++;
+            } else {
+                switch (FileExtension.checkExt(f)) {
+                    case IMAGE:
+                        try {
+                            b.icon = new BitmapDrawable(getResources(), Thumbnail.createImageThumbnail(f.toString(), (byte) 100));
                         } catch (Exception e) {
-                            E.print(MainActivity.this, e);
+                            b.icon = Bitmaps.imageFile;
                         }
-                        else showFileExistsDialog(a, b);
-                    } else {
-                        if (!b.exists()) try {
-                            a.copyTo(b);
+                        break;
+                    case MUSIC:
+                        b.icon = Bitmaps.musicFile;
+                        break;
+                    case TEXT:
+                        b.icon = Bitmaps.textDocument;
+                        break;
+                    case CODE:
+                        b.icon = Bitmaps.codeFile;
+                        break;
+                    case ZIP_ARCHIVE:
+                    case ARCHIVE:
+                        b.icon = Bitmaps.archiveFile;
+                        break;
+                    case VIDEO:
+                        b.icon = Bitmaps.videoFile;
+                        break;
+                    case APK:
+                        try {
+                            final PackageManager c = getPackageManager();
+                            final ApplicationInfo d = c.getPackageArchiveInfo(f.toString(), 0).applicationInfo;
+                            b.icon = c.getApplicationIcon(d);
                         } catch (Exception e) {
-                            E.print(MainActivity.this, e);
+                            b.icon = Bitmaps.apkFile;
                         }
-                        else showFileExistsDialog(a, b);
-                    }
+                        break;
+                    case XAPK:
+                        b.icon = Bitmaps.apkBundle;
+                        break;
+                    case HTML:
+                        b.icon = Bitmaps.htmlFile;
+                        break;
+                    case DEFAULT:
+                    case UNKNOWN:
+                        b.icon = Bitmaps.file;
+                        break;
+                    default:
+                        b.icon = Bitmaps.unknownFile;
+                        break;
+                }
+                b.description = timeFormat.format(f.lastModified()) + " " + new FileSizeTransform(f.size());
+                fileCount++;
+            }
+            a[i] = b;
+        }
+        selection = new boolean[fileList.length];
+        adaptor.setData(a);
+        final MemoryStatus b = new MemoryStatus(currentFile.toString());
+        actionBar.setSubtitle(getResources().getString(R.string.current_directory_info)
+                .replace("$file_count", String.valueOf(fileCount))
+                .replace("$folder_count", String.valueOf(folderCount))
+                .replace("$disk_info", b.getFinalAvailableMemorySize() + "/" + b.getFinalTotalMemorySize())
+        );
+        backButton.setEnabled(true);
+    }
+
+    private final Runnable copyFile = () -> {
+        if (origins.size() > 0) {
+            for (int i = 0; i < origins.size(); i++) {
+                synchronized (pauseLock) {
                     if (stopping) break;
+                    else if (isPaused) {
+                        try {
+                            pauseLock.wait();
+                        } catch (Exception e) {
+                            break;
+                        }
+                    }
                 }
+                final Filex a = new Filex(origins.get(i));
+                final Filex b = new Filex(currentFile.toString(), a.getName());
+                if (movingFile) {
+                    if (!b.exists()) try {
+                        a.moveTo(b);
+                    } catch (Exception e) {
+                        E.print(MainActivity.this, e);
+                    }
+                    else showFileExistsDialog(a, b);
+                } else {
+                    if (!b.exists()) try {
+                        a.copyTo(b);
+                    } catch (Exception e) {
+                        E.print(MainActivity.this, e);
+                    }
+                    else showFileExistsDialog(a, b);
+                }
+                if (stopping) break;
             }
-            handler.sendEmptyMessage(0);
         }
+        handler.sendEmptyMessage(0);
     };
 
     public MainActivity() {
         new Thread() {
+            @Override
             public final void run() {
                 final File a = new Path(Storage.STORAGE_INTERNAL, ".thumbnailcreator").getFile();
                 if (a.exists()) {
@@ -510,7 +507,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                     if (f.requireRootAccess())
                         f = new Filex(Utils.saveTempFile(f.toString()));
                     final Filex xf = f;
-                    FileExtension fileExtension = FileExtension.CheckFileExtension(xf);
+                    FileExtension fileExtension = FileExtension.checkExt(xf);
                     if (fileExtension == FileExtension.IMAGE) {
                         Application.sendIntentData(this, xf, "image/*");
                     } else if (fileExtension == FileExtension.MUSIC) {
@@ -806,7 +803,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         swipeRefreshLayout.setRefreshing(true);
         try {
             adaptor = new FileAdaptor();
-            handler.post(setupContentData);
+            setupContentData();
             if (selectedCount >= 0) {
                 selectedCount = 0;
                 if (selectionNavigationBar.getVisibility() == View.VISIBLE) {
@@ -827,9 +824,8 @@ public final class MainActivity extends ActivityFramework implements AdapterView
 
     @SuppressLint("NonConstantResourceId")
     final void initializeFileManager() {
-        origins = new ArrayList<>();
         adaptor = new FileAdaptor();
-        handler.post(setupContentData);
+        setupContentData();
         listView.setSelector(ContextCompat.getDrawable(this, R.drawable.list_item));
         listView.setAdapter(adaptor);
         actionBar.setTitle(currentFile.toString());
@@ -1028,7 +1024,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                             )
                     }, AlertDialog.cancelButton);
                 } else {
-                    final FileExtension g = FileExtension.CheckFileExtension(f);
+                    final FileExtension g = FileExtension.checkExt(f);
                     if (g == FileExtension.ZIP_ARCHIVE || g == FileExtension.APK) {
                         SelectDialog.show(this, getResources().getString(R.string.menu), new SelectDialogItem[]{
                                 new SelectDialogItem(
@@ -1819,74 +1815,80 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         FileExtension() {
         }
 
-        public static FileExtension CheckFileExtension(Filex f) {
-            final String a = f.getExtension();
-            if (isImageFile(a)) return IMAGE;
-            else if (isMusicFile(a)) return MUSIC;
-            else if (isTextFile(a)) return TEXT;
-            else if (isCodeFile(a)) return CODE;
-            else if (isArchiveFile(a)) return ARCHIVE;
-            else if (isVideoFile(a)) return VIDEO;
-            else if (isZipFile(a)) return ZIP_ARCHIVE;
-            else if (isApkFile(a)) return APK;
-            else if (isXApkFile(a)) return XAPK;
-            else if (isHtmlFile(a)) return HTML;
-            else if (isDiskImageFile(a)) return DISK_IMAGE;
-            else if (isPdfFile(a)) return PDF;
-            else if (isCompressedFile(a)) return COMPRESSED;
-            else return UNKNOWN;
-        }
-
-        private static boolean isImageFile(String s) {
-            return s.equals(".png") || s.equals(".jpg") || s.equals(".jpeg") || s.equals(".bmp") || s.equals(".webp") || s.equals(".heif");
-        }
-
-        private static boolean isMusicFile(String s) {
-            return s.equals(".aac") || s.equals(".mkv") || s.equals(".mp3") || s.equals(".m4a") || s.equals(".ogg") || s.equals(".amr") || s.equals(".flac") || s.equals(".mid") || s.equals(".wav");
-        }
-
-        private static boolean isTextFile(String s) {
-            return s.equals(".txt") || s.equals(".ini") || s.equals(".log") || s.equals(".properties");
-        }
-
-        private static boolean isCodeFile(String s) {
-            return s.equals(".java") || s.equals(".cpp") || s.equals(".c") || s.equals(".h") || s.equals(".cs") || s.equals(".xml") || s.equals(".css") || s.equals(".kt") || s.equals(".js") || s.equals(".json") || s.equals(".py");
-        }
-
-        private static boolean isArchiveFile(String s) {
-            return s.equals(".7z") || s.equals(".tar");
-        }
-
-        private static boolean isVideoFile(String s) {
-            return s.equals(".mp4") || s.equals(".3gp") || s.equals(".webm") || s.equals(".mpeg");
-        }
-
-        private static boolean isZipFile(String s) {
-            return s.equals(".zip") || s.equals(".pkg") || s.equals(".jar") || s.equals(".obb");
-        }
-
-        private static boolean isApkFile(String s) {
-            return s.equals(".apk");
-        }
-
-        private static boolean isXApkFile(String s) {
-            return s.equals(".xapk") || s.equals(".apks");
-        }
-
-        private static boolean isHtmlFile(String s) {
-            return s.equals(".htm") || s.equals(".html");
-        }
-
-        private static boolean isDiskImageFile(String s) {
-            return s.equals(".img") || s.equals(".iso");
-        }
-
-        private static boolean isPdfFile(String s) {
-            return s.equals(".pdf");
-        }
-
-        private static boolean isCompressedFile(String s) {
-            return s.equals(".bz2") || s.equals(".gz") || s.equals(".lz4") || s.equals(".pack") || s.equals(".sz") || s.equals(".xz") || s.equals(".zst");
+        public static FileExtension checkExt(Filex f) {
+            final String s = f.getExtension();
+            switch (s) {
+                case ".png":
+                case ".jpg":
+                case ".jpeg":
+                case ".bmp":
+                case ".webp":
+                case ".heif":
+                    return IMAGE;
+                case ".aac":
+                case ".mkv":
+                case ".mp3":
+                case ".m4a":
+                case ".ogg":
+                case ".amr":
+                case ".flac":
+                case ".mid":
+                case ".wav":
+                    return MUSIC;
+                case ".txt":
+                case ".ini":
+                case ".log":
+                case ".properties":
+                    return TEXT;
+                case ".java":
+                case ".cpp":
+                case ".c":
+                case ".h":
+                case ".cs":
+                case ".xml":
+                case ".css":
+                case ".kt":
+                case ".js":
+                case ".json":
+                case ".py":
+                    return CODE;
+                case ".7z":
+                case ".tar":
+                    return ARCHIVE;
+                case ".mp4":
+                case ".3gp":
+                case ".webm":
+                case ".mpeg":
+                    return VIDEO;
+                case ".zip":
+                case ".pkg":
+                case ".jar":
+                case ".obb":
+                    return ZIP_ARCHIVE;
+                case ".apk":
+                    return APK;
+                case ".xapk":
+                case ".apks":
+                    return XAPK;
+                case ".htm":
+                case ".html":
+                    return HTML;
+                case ".img":
+                case ".iso":
+                    return DISK_IMAGE;
+                case ".pdf":
+                    return PDF;
+                case ".bz2":
+                case ".gz":
+                case ".lz4":
+                case ".pack":
+                case ".sz":
+                case ".xz":
+                case ".zst":
+                    return COMPRESSED;
+                default:
+                    return UNKNOWN;
+            }
         }
     }
 
@@ -1901,9 +1903,9 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         public final double zettabytes;
         public final double yottabytes;
 
-        private FileSizeTransform(long l) {
-            bytes = l;
-            kilobytes = bytes >= 1024 ? bytes / 1024d : 0;
+        private FileSizeTransform(long bytes) {
+            this.bytes = bytes;
+            kilobytes = this.bytes >= 1024 ? this.bytes / 1024d : 0;
             megabytes = kilobytes >= 1024 ? kilobytes / 1024d : 0;
             gigabytes = megabytes >= 1024 ? megabytes / 1024d : 0;
             terabytes = gigabytes >= 1024 ? gigabytes / 1024d : 0;
@@ -1916,7 +1918,7 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         @NonNull
         @Override
         public final String toString() {
-            final DecimalFormat a = new DecimalFormat("0.00");
+            final DecimalFormat format = new DecimalFormat("0.00");
             if (bytes >= 1) {
                 if (kilobytes >= 1) {
                     if (megabytes >= 1) {
@@ -1926,21 +1928,21 @@ public final class MainActivity extends ActivityFramework implements AdapterView
                                     if (exabytes >= 1) {
                                         if (zettabytes >= 1) {
                                             if (yottabytes >= 1) {
-                                                return (a.format(yottabytes) + "YB");
+                                                return (format.format(yottabytes) + "YB");
                                             }
-                                            return (a.format(zettabytes) + "ZB");
+                                            return (format.format(zettabytes) + "ZB");
                                         }
-                                        return (a.format(exabytes) + "EB");
+                                        return (format.format(exabytes) + "EB");
                                     }
-                                    return (a.format(petabytes) + "PB");
+                                    return (format.format(petabytes) + "PB");
                                 }
-                                return (a.format(terabytes) + "TB");
+                                return (format.format(terabytes) + "TB");
                             }
-                            return (a.format(gigabytes) + "GB");
+                            return (format.format(gigabytes) + "GB");
                         }
-                        return (a.format(megabytes) + "MB");
+                        return (format.format(megabytes) + "MB");
                     }
-                    return (a.format(kilobytes) + "KB");
+                    return (format.format(kilobytes) + "KB");
                 }
                 return (bytes + "B");
             }
@@ -2010,6 +2012,37 @@ public final class MainActivity extends ActivityFramework implements AdapterView
         }
 
         private LUtil() {
+        }
+    }
+
+    private static final class Bitmaps {
+        public static final Drawable folder;
+        public static final Drawable imageFile;
+        public static final Drawable musicFile;
+        public static final Drawable textDocument;
+        public static final Drawable codeFile;
+        public static final Drawable archiveFile;
+        public static final Drawable videoFile;
+        public static final Drawable apkFile;
+        public static final Drawable apkBundle;
+        public static final Drawable htmlFile;
+        public static final Drawable file;
+        public static final Drawable unknownFile;
+
+        static {
+            final Context a = ContextUtils.getContext();
+            folder = ContextCompat.getDrawable(a, R.drawable.folder);
+            imageFile = ContextCompat.getDrawable(a, R.drawable.image_file);
+            musicFile = ContextCompat.getDrawable(a, R.drawable.music_file);
+            textDocument = ContextCompat.getDrawable(a, R.drawable.text_document);
+            codeFile = ContextCompat.getDrawable(a, R.drawable.code_file);
+            archiveFile = ContextCompat.getDrawable(a, R.drawable.archive_file);
+            videoFile = ContextCompat.getDrawable(a, R.drawable.video_file);
+            apkFile = ContextCompat.getDrawable(a, R.drawable.apk_file);
+            apkBundle = ContextCompat.getDrawable(a, R.drawable.apk_bundle);
+            htmlFile = ContextCompat.getDrawable(a, R.drawable.html_file);
+            file = ContextCompat.getDrawable(a, R.drawable.file);
+            unknownFile = ContextCompat.getDrawable(a, R.drawable.file_unknown);
         }
     }
 }
