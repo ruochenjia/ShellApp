@@ -20,6 +20,7 @@
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
@@ -41,13 +42,13 @@
 
     <application
         android:name="shell.app.Application"
-        android:icon="@mipmap/app_icon"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:preserveLegacyExternalStorage="true"
         android:process="system"
         android:requestLegacyExternalStorage="true"
         android:requestRawExternalStorageAccess="true"
-        android:roundIcon="@mipmap/app_icon_round"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
@@ -69,13 +70,6 @@
         <meta-data
             android:name="android.webkit.WebView.EnableSafeBrowsing"
             android:value="true" />
-
-        <activity
-            android:name="shell.app.MainActivity"
-            android:icon="@mipmap/ic_file_manager"
-            android:label="@string/file_manager"
-            android:roundIcon="@mipmap/ic_file_manager_round"
-            android:theme="@style/Theme.NoActionBar" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -94,11 +88,13 @@
             android:stopWithTask="false" />
 
         <activity
+            android:name="shell.app.MainActivity"
+            android:label="@string/file_manager"
+            android:theme="@style/Theme.NoActionBar" />
+        <activity
             android:name="shell.app.TextEditorActivity"
             android:exported="true"
-            android:icon="@mipmap/ic_text_editor"
-            android:label="@string/text_editor"
-            android:roundIcon="@mipmap/ic_text_editor_round">
+            android:label="@string/text_editor">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -130,7 +126,7 @@
         <activity
             android:name="shell.app.ApkInstaller"
             android:exported="true"
-            android:label="Apk Installer">
+            android:label="@string/apk_installer">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

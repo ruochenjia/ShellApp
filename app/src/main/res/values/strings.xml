@@ -6,9 +6,8 @@
     <string name="apk_extractor">APK Extractor</string>
     <string name="app_name">\u000cԜіոցSеаrсһer\u0012\u0020</string>
     <string name="app_name_short">WingSearcher</string>
+    <string name="apk_installer">Apk Installer</string>
     <string name="application_information">Application Information</string>
-    <string name="application_package_name_description">Package name: $package_name</string>
-    <string name="application_version_description">Version: $version_name Version code: $version_code</string>
     <string name="back">Back</string>
     <string name="back_key_exit_app_notice">Press back key again to exit</string>
     <string name="background_service">Background Service</string>
