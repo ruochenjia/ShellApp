@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-
-    <style name="AppTheme.ActionBar" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
-        <item name="background">@color/app_theme</item>
-        <item name="titleTextStyle">@style/AppTheme.ActionBar.TextAppearance</item>
-        <item name="subtitleTextStyle">@style/AppTheme.ActionBar.SubtitleTextAppearance</item>
-    </style>
-
-    <style name="AppTheme.ActionBar1" parent="Widget.AppCompat.ActionBar">
+    <style name="AppTheme.ActionBar" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
         <item name="background">@color/app_theme</item>
         <item name="titleTextStyle">@style/AppTheme.ActionBar.TextAppearance</item>
         <item name="subtitleTextStyle">@style/AppTheme.ActionBar.SubtitleTextAppearance</item>
@@ -23,14 +16,23 @@
         <item name="android:textSize">14sp</item>
     </style>
 
-    <style name="AppTheme" parent="Theme.AppCompat.DayNight">
+    <style name="Custom.Theme.ActionBar" parent="ThemeOverlay.MaterialComponents.ActionBar">
+        <item name="android:textColorPrimary">@color/white</item>
+    </style>
+
+    <style name="Custom.ActionBar" parent="Widget.MaterialComponents.ActionBar.Solid">
+        <item name="background">@color/app_theme</item>
+    </style>
+
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight">
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
-        <item name="actionBarStyle">@style/AppTheme.ActionBar1</item>
+        <item name="actionBarStyle">@style/Custom.ActionBar</item>
+        <item name="actionBarTheme">@style/Custom.Theme.ActionBar</item>
         <item name="android:textViewStyle">@style/AppTheme.TextView</item>
         <item name="android:editTextStyle">@style/AppTheme.EditText</item>
         <item name="android:statusBarColor" tools:targetApi="l">@color/app_theme</item>
